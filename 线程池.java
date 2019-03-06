@@ -84,7 +84,7 @@
 	poolSize < corePoolSize 时， 当任务处理慢时，则创建新的线程处理新的task
 	poolSize == corePoolSize 时，将(task-corePoolSize)的任务放入workQueue中，等待处理
 	task > corePoolSize+workQueue 时,当新任务加入workQueue失败时(任务缓存队列已满),则将线程数增大至 maximumPoolSize来处理添加缓存失败的任务
-	task > maximumPoolSize+workQueue 根据拒绝策略执行    
+	task > maximumPoolSize+workQueue 根据拒绝策略执行
 }
 
 
