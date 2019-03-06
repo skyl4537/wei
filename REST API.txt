@@ -1,0 +1,4 @@
+1.REST
+	表述性(Representational): REST资源可以用各种形式来进行表述，包括xml/json/html等
+	状态(state):关注资源状态
+	转移(Transfer): 资源数据从一个应用转移到另一个应用
