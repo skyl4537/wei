@@ -227,6 +227,53 @@
 	日志配置文件
 		logback.xml: 直接被日志框架加载
 		logback-spring.xml: 跳过日志框架,直接被SpringBoot加载,可以使用高级 springProfile 功能
+}
+
+5.springboot对静态资源的映射{
+	classpath:/
+}
+
+6.thymeleaf用法{
+	pom文件依赖{
+		<dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+	}
+	
+	把html文件放在classpath:/templates/文件夹下，thymeleaf可以自动渲染
+	
+	导入thymeleaf的名称空间
+		<html xmlns:th="http://www.thymeleaf.org">
+		
+	thymeleaf语法规则
+		th:text				改变当前元素的文本内容
+		th:任意html属性 	替换html原生属性值
+			<div th:id="${hello}" th:class="${hello}" th:text="${hello}"></div>
+		
+		表达式语法
+			${}		获取值
+			*{}		选择表达式与${}功能相同，补充配合th:object=${session.user} 使用 *{firstName} * 表示 ${session.user}
+			#{}		获取国际化内容
+			@{}		定义url链接 th:href=@{/pa(k1=v1,k2=v2)}  th:href=@{/pa(k1=v1,k2=v2)} /代表当前项目
+			~{}		片段引入表达式
+			
+		th:each 每次遍历都会生成当前标签
+		<h3 th:each="user:${users}" th:text="${user}"></h3>
+		行内写法
+			[[ ]] = th:text ; [( )] = th:utext 
+
+}
+
+7.扩展springmvc功能{
+	
+	即保留了springboot自动的配置，也可以用我们自定义的配置
+	@Configuration
+	public class MyMvcConfig extends WebMvcConfigurerAdapter{...}
+	
+	springmvc的所有自动配置信息都在 WebMvcAutoConfiguration配置类中
+	使用@EnableWebMvc该注解则表示，完全使用自己配置的springmvc配置，springboot中自动配置的mvc将不起作用
+	
 	
 }
 
@@ -234,4 +281,10 @@
 
 
 
-		
+			
+			
+			
+			
+			
+			
+			

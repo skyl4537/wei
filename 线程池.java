@@ -87,8 +87,7 @@
 	task > maximumPoolSize+workQueue 根据拒绝策略执行  
 }
 
-
-TCP与UDP区别{
+6.TCP与UDP区别{
 	1、TCP面向连接（如打电话要先拨号建立连接）;UDP是无连接的，即发送数据之前不需要建立连接
 	2、TCP提供可靠的服务。也就是说，通过TCP连接传送的数据，无差错，不丢失，不重复，且按序到达;UDP尽最大努力交付，即不保证可靠交付
 	3、TCP面向字节流，实际上是TCP把数据看成一连串无结构的字节流;UDP是面向报文的
@@ -97,6 +96,144 @@ TCP与UDP区别{
 	5、TCP首部开销20字节;UDP的首部开销小，只有8个字节
 	6、TCP的逻辑通信信道是全双工的可靠信道，UDP则是不可靠信道
 }
+
+7.SimpleDateFormat线程不安全问题{
+	https://www.cnblogs.com/java1024/p/8594784.html
+	原因：
+		SimpleDateFormat继承了DateFormat,在DateFormat中定义了一个protected属性的 Calendar类的对象：calendar。只是因为Calendar类的概念复杂，
+		牵扯到时区与本地化等等，Jdk的实现中使用了成员变量来传递参数，这就造成在多线程的时候会出现错误。
+		
+		源码:
+		 private StringBuffer format(Date date, StringBuffer toAppendTo,
+                                FieldDelegate delegate) {
+				// Convert input date to time field list
+			calendar.setTime(date); //设置时间，在多线程的情况下有问题
+			boolean useDateFormatSymbols = useDateFormatSymbols();
+
+				for (int i = 0; i < compiledPattern.length; ) {
+					int tag = compiledPattern[i] >>> 8;
+				int count = compiledPattern[i++] & 0xff;
+				if (count == 255) {
+				count = compiledPattern[i++] << 16;
+				count |= compiledPattern[i++];
+				}
+
+				switch (tag) {
+				case TAG_QUOTE_ASCII_CHAR:
+				toAppendTo.append((char)count);
+				break;
+
+				case TAG_QUOTE_CHARS:
+				toAppendTo.append(compiledPattern, i, count);
+				i += count;
+				break;
+
+				default:
+						subFormat(tag, count, delegate, toAppendTo, useDateFormatSymbols);
+				break;
+				}
+			}
+				return toAppendTo;
+			}
+	解决方案：
+		package com.peidasoft.dateformat;
+
+		import java.text.DateFormat;
+		import java.text.ParseException;
+		import java.text.SimpleDateFormat;
+		import java.util.Date;
+
+		public class ConcurrentDateUtil {
+
+			private static ThreadLocal<DateFormat> threadLocal = new ThreadLocal<DateFormat>() {
+				@Override
+				protected DateFormat initialValue() {
+					return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+				}
+			};
+
+			public static Date parse(String dateStr) throws ParseException {
+				return threadLocal.get().parse(dateStr);
+			}
+
+			public static String format(Date date) {
+				return threadLocal.get().format(date);
+			}
+		}
+		
+	说明：使用ThreadLocal, 也是将共享变量变为独享，线程独享肯定能比方法独享在并发环境中能减少不少创建对象的开销。如果对性能要求比较高的情况下，一般推荐使用这种方法。
+	
+		
+#三者关系: Thread, ThreadLocal, ThreadLocalMap
+	// Thread 中有个 ThreadLocal.ThreadLocalMap 类型的成员变量 threadLocals
+	public class Thread implements Runnable {
+		ThreadLocal.ThreadLocalMap threadLocals = null;
+	}
+	
+	// ThreadLocalMap 是 ThreadLocal 的内部类. 它是一个Map, 它的Key是ThreadLocal类型对象!!
+	public class ThreadLocal<T> {
+		public void set(T value) {
+			Thread t = Thread.currentThread();
+			ThreadLocalMap map = t.threadLocals; // 获取当前线程的 threadLocals 变量
+			if (map != null) {
+				map.set(this, value); // key -> ThreadLocal对象自身; value -> 局部变量
+			} else {
+				t.threadLocals = new ThreadLocalMap(this, value);
+			}
+		}
+		
+		public T get() {
+			Thread t = Thread.currentThread();
+			ThreadLocalMap map = t.threadLocals; //获取当前线程的 threadLocals 变量
+			if (map != null) {
+				ThreadLocalMap.Entry e = map.getEntry(this);
+				if (e != null) {
+					@SuppressWarnings("unchecked")
+					T result = (T)e.value;
+					return result;
+				}
+			}
+			return null;
+		}
+		
+		static class ThreadLocalMap /* <ThreadLocal<?>, Object> //自己加的,便于理解 */ { 
+			//...
+		}
+	}
+}
+
+8.BIO与NIO{
+	BIO：同步阻塞式IO，服务器实现模式为一个连接一个线程，即客户端有连接请求时服务器端就需要启动一个线程进行处理
+	NIO：同步非阻塞式IO，服务器实现模式为一个请求一个线程，即客户端发送的连接请求都会注册到多路复用器上，
+		 多路复用器轮询到连接有I/O请求时才启动一个线程进行处理。
+	
+
+}
+
+9.socket{
+	1.client.setKeepAlive(true);
+		服务端设置keeplive为true,当客户端没有发送任何数据过来，超过一个时间(看系统内核参数配置)，
+		那么服务端会发送一个ack探测包发到对方，探测双方的TCP/IP连接是否有效(对方可能断点，断网)。
+		如果不设置，那么客户端宕机时，服务器永远也不知道客户端宕机了，仍然保存这个失效的连接。
+		建议开发者使用的另一种比keepalive更好的解决方案是修改超时设置套接字选项。
+	2.client.setOOBInline(false);client.sendUrgentData(0);
+		setOOBInline默认为false
+		表示是否支持发送一个字节的TCP紧急数据
+		为 false的这种情况下, 当接收方收到紧急数据时不作任何处理, 直接将其丢弃.
+		sendUrgentData和setOOBInline配合使用
+		用于发送一个字节的 TCP紧急数据
+		
+		
+}
+
+
+
+
+
+
+https://elf8848.iteye.com/blog/1739598
+
+
 
 
 

@@ -59,8 +59,8 @@
 
 3.servletContext当前应用上下文{
 	ServletConfig: 封装了 Serlvet 的配置信息, 并且可以获取 ServletContext 对象
-	servletContext应用上下文，应用于/整个应用的全局参数
-	在web.xml，添加context-param子节点
+	servletContext应用上下文，应用于整个应用 是应用的全局参数
+	给应用添加全局参数配置，在web.xml，添加context-param子节点
 	<context-param>
 		<param-name>jdbc</param-name>
 		<param-value>mysql</param-value>
@@ -642,7 +642,7 @@
 
 17.Listener{
 	1.ServletContextListener
-		应用被servlet容器被加载时创建，应用被servlet容器销毁时销毁
+		应用被servlet容器加载时创建，应用被servlet容器销毁时销毁
 		主要作用:初始化应用的参数，加载数据库，加载springIOC容器
 		需在web.xml中配置
 		实现ServletContextListener接口
@@ -868,4 +868,13 @@
 		}
 	
 }
+
+20.cookie和session的区别{
+	1、cookie数据存放在客户的浏览器上，session数据放在服务器上。
+	2、cookie不是很安全，别人可以分析存放在本地的cookie并进行cookie欺骗，考虑到安全应当使用session。
+	3、session会在一定时间内保存在服务器上。当访问增多，会比较占用你服务器的性能，考虑到减轻服务器性能方面，应当使用cookie。
+	4、单个cookie保存的数据不能超过4K，很多浏览器都限制一个站点最多保存20个cookie。
+	5、可以考虑将登陆信息等重要信息存放为session，其他信息如果需要保留，可以放在cookie中。
+}
+
 
