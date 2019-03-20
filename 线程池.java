@@ -205,9 +205,11 @@
 8.BIO与NIO{
 	BIO：同步阻塞式IO，服务器实现模式为一个连接一个线程，即客户端有连接请求时服务器端就需要启动一个线程进行处理
 	NIO：同步非阻塞式IO，服务器实现模式为一个请求一个线程，即客户端发送的连接请求都会注册到多路复用器上，
-		 多路复用器轮询到连接有I/O请求时才启动一个线程进行处理。
+		 多路复用器轮询到连接有I/O请求时才启动一个线程进行处理。	
 	
-
+	各自应用场景
+		（1）NIO适合处理连接数目特别多，但是连接比较短（轻操作）的场景，Jetty，Mina，ZooKeeper等都是基于java nio实现。
+		（2）BIO方式适用于连接数目比较小且固定的场景，这种方式对服务器资源要求比较高，并发局限于应用中。
 }
 
 9.socket{
@@ -222,9 +224,68 @@
 		为 false的这种情况下, 当接收方收到紧急数据时不作任何处理, 直接将其丢弃.
 		sendUrgentData和setOOBInline配合使用
 		用于发送一个字节的 TCP紧急数据
-		
-		
+	
 }
+
+10.tomcat{
+	Tomcat顶层架构
+		一个Tomcat中只有一个Server，一个Server可以包含多个Service，一个Service只有一个Container，但是可以有多个Connectors，
+		这是因为一个服务可以有多个连接，如同时提供Http和Https链接，也可以提供向相同协议不同端口的连接，
+		多个 Connector 和一个 Container 就形成了一个 Service
+		
+		-server
+			-Service（多个）
+				-Connector（多个）
+				-Container(1个)
+	
+		Connector用于接受请求并将请求封装成Request和Response来具体处理；
+		Container用于封装和管理Servlet，以及具体处理request请求；
+		
+	Connector的结构
+		-Connector
+			-ProtocolHandler
+				-Endpoint
+					-Acceptor(用于监听请求)
+					-AsyncTimeout(用于检查异步Request的超时)
+					-Handler(Handler用于处理接收到的Socket，在内部调用Processor进行处理)
+				-Processor
+				-Adapter
+		
+		ProtocolHandler处理请求，不同的ProtocolHandler代表不同的连接类型，
+			比如：Http11Protocol使用的是普通Socket来连接的，Http11NioProtocol使用的是NioSocket来连接的
+			
+			Endpoint用来处理底层Socket的网络连接,用来实现TCP/IP协议的
+			Processor用于将Endpoint接收到的Socket封装成Request,用来实现HTTP协议的
+			Adapter用于将Request交给Container进行具体的处理,将请求适配到Servlet容器进行具体的处理。
+			
+	Container架构
+		-Engine
+		-Host
+		-Context
+		-Wrapper
+		
+		Engine：引擎，用来管理多个站点，一个Service最多只能有一个Engine； 
+		Host：代表一个站点，也可以叫虚拟主机，通过配置Host就可以添加站点；整个webapps就是一个Host站点
+		Context：代表一个应用程序，对应着平时开发的一套程序，或者一个WEB-INF目录以及下面的web.xml文件； 
+		Wrapper：每一Wrapper封装着一个Servlet；
+		
+		Container处理请求是使用责任链模式，
+			责任链模式是指在一个请求处理的过程中有很多处理者依次对请求进行处理，每个处理者负责做自己相应的处理，
+				处理完之后将处理后的请求返回，再让下一个处理着继续处理。
+		Container包含四个子容器，而这四个子容器对应的BaseValve分别在：StandardEngineValve、StandardHostValve、StandardContextValve、StandardWrapperValve。
+		Connector在接收到请求后会首先调用Container最顶层容器的Pipeline来处理,
+		Container责任链调用流程：
+		EngineValve1...->StandardEngineValve->HostValve1...StandardHostValve->ContextValve1...StandardContextValve->WrapperValve1...->StandardWrapperValve
+		
+		当执行到StandardWrapperValve的时候，会在StandardWrapperValve中创建FilterChain，并调用其doFilter方法来处理请求，
+		这个FilterChain包含着我们配置的与请求相匹配的Filter和Servlet，其doFilter方法会依次调用所有的Filter的doFilter方法和Servlet的service方法，
+		这样请求就得到了处理！
+		
+		当所有的Pipeline-Valve都执行完之后，并且处理完了具体的请求，这个时候就可以将返回的结果交给Connector了，
+		Connector在通过Socket的方式将结果返回给客户端。
+}
+
+
 
 
 
