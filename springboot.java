@@ -227,9 +227,9 @@
 	日志配置文件
 		logback.xml: 直接被日志框架加载
 		logback-spring.xml: 跳过日志框架,直接被SpringBoot加载,可以使用高级 springProfile 功能
-}
+})
 
-5.springboot对静态资源的映射{
+5.springboot对静态资源的映射{？？？
 	classpath:/
 }
 
@@ -273,11 +273,310 @@
 	
 	springmvc的所有自动配置信息都在 WebMvcAutoConfiguration配置类中
 	使用@EnableWebMvc该注解则表示，完全使用自己配置的springmvc配置，springboot中自动配置的mvc将不起作用
+
+}
+
+8.错误页面定制{
+	ErrorMvcAutoConfiguration 错误处理的自动配置类
+	这个配置文件给容器添加了下面的组件
+	1.DefaultErrorAttributes
+		页面徐解析的错误数据模型进行封装
+	2.BasicErrorController
+		处理/error 请求
+		@Controller
+		@RequestMapping("${server.error.path:${error.path:/error}}")
+		public class BasicErrorController extends AbstractErrorController {
+			@RequestMapping(produces = MediaType.TEXT_HTML_VALUE) //html 
+			public ModelAndView errorHtml(HttpServletRequest request,
+					HttpServletResponse response) {
+				HttpStatus status = getStatus(request);
+				Map<String, Object> model = Collections.unmodifiableMap(getErrorAttributes(
+						request, isIncludeStackTrace(request, MediaType.TEXT_HTML)));
+				response.setStatus(status.value());
+				ModelAndView modelAndView = resolveErrorView(request, response, status, model);
+				return (modelAndView != null) ? modelAndView : new ModelAndView("error", model);
+			}
+
+			@RequestMapping//json
+			public ResponseEntity<Map<String, Object>> error(HttpServletRequest request) {
+				Map<String, Object> body = getErrorAttributes(request,
+						isIncludeStackTrace(request, MediaType.ALL));
+				HttpStatus status = getStatus(request);
+				return new ResponseEntity<>(body, status);
+			}
+		}
+		
+		getErrorAttributes(request, isIncludeStackTrace(request, MediaType.TEXT_HTML))
+		这个方法最终调用DefaultErrorAttributes进行数据解析，封装模型数据
+	3.ErrorPageCustomizer
+		注册错误页面
+		@Override
+		public void registerErrorPages(ErrorPageRegistry errorPageRegistry) {
+			ErrorPage errorPage = new ErrorPage(this.dispatcherServletPath
+					.getRelativePath(this.properties.getError().getPath()));
+			errorPageRegistry.addErrorPages(errorPage);
+		}
+		
+		this.properties.getError().getPath()的默认为：
+		@Value("${error.path:/error}")
+		private String path = "/error";
+		则会触发 /error请求
+	4.DefaultErrorViewResolver
+		将BasicErrorController中 /error返回的ModelAndView进行解析，
+		1.可以匹配的模板引擎(即目录中有templates/error/错误状态码.html)，则使用模板页面
+		2.查找静态资源下是否有可匹配的页面，则使用静态页面
+		3.默认的Spel表达式的html页面
+		从上到下 优先级由高到低
+	发生系统错误时，会触发ErrorPageCustomizer
 	
+	执行步骤:3-> 2-> 1-> 4
+	
+	
+	在错误信息中添加自定义信息
+		1.继承DefaultErrorAttributes,覆写getErrorAttributes方法
+		@Component
+		public class MyErrorAttributes extends DefaultErrorAttributes {
+			@Override
+			public Map<String, Object> getErrorAttributes(WebRequest webRequest,
+														  boolean includeStackTrace) {
+				Map<String, Object> errorAttributes = super.getErrorAttributes(webRequest,
+						includeStackTrace);
+				errorAttributes.put("company","wei");
+				Map<String,Object> ext = ( Map<String,Object>)webRequest.getAttribute("ext", 0);
+				errorAttributes.put("ext",ext);
+				return errorAttributes;
+			}
+		}
+		2.将错误信息放置request.setAttribute()中
+		@ControllerAdvice
+		public class MyException {
+
+			@ExceptionHandler(UserNotExistException.class)
+			public String  handlerException(Exception e, HttpServletRequest request){
+				Map<String,Object>map = new HashMap<>();
+				request.setAttribute("javax.servlet.error.status_code",500);
+				map.put("cdoe","userNotExist");
+				map.put("message",e.getMessage());
+
+				request.setAttribute("ext",map);
+
+				return "foward:/error";
+			}
+
+		}	
 	
 }
 
+9.docker{
+	
+	安装docker
+		docker yum install
+	
+	启动docker
+		systemctl start docker 
+		
+	关闭docker
+		systemctl stop docker 
+	
+	查看docker版本
+		docker -v
+	
+	搜索镜像
+		docker search name
+	
+	下载镜像
+		docker pull ubuntu:13.10(版本信息),不写则获取最新的镜像
+	
+	查看本地有哪些镜像
+		docker images
+	
+	删除镜像
+		docker rmi image_id
+	
+	启动镜像容器
+		docker run --name mytomcat01 -d tomcat:TAG -p 80:8080
+		
+		--name	自定义软件的名称
+		-d		后台运行
+		-p		端口映射	(主机端口)80:8080(容器端口) 通过主机端口映射可访问容器中的端口
+		run		每执行一次run则会创建一个容器，一个镜像可启动多个容器，每个容器独立且互不干扰
+	
+	停止/开启 容器
+		docker stop/start containerName/containerID
+	
+	查看有哪些容器在运行
+		docker ps
+		
+	查看所有的容器
+		docker ps -a
+		
+	删除容器
+		docker rm containerName/containerID
+		删除的容器必须是在关闭的状态才可删除
+		
+	查看容器日志
+		docker logs containerName/containerID
+	
+	查看防火墙状态
+		service firewalld status 
+	
+	关闭防火墙
+		service firewalld stop 
+	
+	mysql启动容器
+		docker run --name mysql01 -d mysql -p 33306:3306 -e MYSQL_ROOT_PASSWORD=123456
+		mysql在下载镜像启动容器时不指定密码在启动容器时则会异常退出
+	
+}
 
+10.数据访问{
+	pom.xml文件中引入
+		<dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jdbc</artifactId>
+        </dependency>
+		<dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+		
+	通过配置文件修改配置参数信息
+		spring.datasource.username=bluecardsoft
+		spring.datasource.password=#$%_BC13439677375
+		spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+		spring.datasource.url=jdbc:mysql://192.168.8.8:33306/test0601?serverTimezone\=GMT%2B8
+		
+		
+		
+		The server time zone value 'ÖÐ¹ú±ê×¼Ê±¼ä' is unrec
+		serverTimezone\=GMT%2B8,时区,不配置时区在获取连接时报错
+		
+	springboot默认使用的com.zaxxer.hikari.HikariDataSource 数据源
+	
+	数据源相关配置都在 DataSourceProperties 里，
+	
+	自动配置相关的信息在org.springframework.boot.autoconfigure.jdbc包中
+		DataSourceConfiguration类是根据配置信息来生成数据源
+		使用spring.datasource.type属性来指定使用哪种数据源类型，默认可以支持四种:
+			1.org.apache.tomcat.jdbc.pool.DataSource
+			2.com.zaxxer.hikari.HikariDataSource
+			3.org.apache.commons.dbcp2.BasicDataSource
+			4.自定义数据源
+				/**
+				 * Generic DataSource configuration.
+				 */
+				@ConditionalOnMissingBean(DataSource.class)
+				@ConditionalOnProperty(name = "spring.datasource.type")
+				static class Generic {
+
+					@Bean
+					public DataSource dataSource(DataSourceProperties properties) {
+						//使用DataSourceBuilder创建数据源,利用反射机制来创建相应type的数据源，并绑定相关属性
+						return properties.initializeDataSourceBuilder().build();
+					}
+				}
+				
+				例如: c3p0数据源
+				
+	Druid
+		使用Druid自定义数据源类型
+		application.properties中指定数据源类型
+			spring.datasource.type=com.alibaba.druid.pool.DruidDataSource
+		pom文件添加依赖
+			<dependency>
+				<groupId>com.alibaba</groupId>
+				<artifactId>druid</artifactId>
+				<version>1.1.14</version>
+			</dependency>
+			
+		
+		配置类
+		@Configuration
+		public class DruidConfig {
+			//使配置文件中的配置生效
+			@ConfigurationProperties(prefix = "spring.datasource")
+			@Bean
+			public DataSource druid(){
+				return new DruidDataSource();
+			}
+
+			//添加druid的servlet
+			@Bean
+			public ServletRegistrationBean servletRegistrationBean(){
+				ServletRegistrationBean bean = new ServletRegistrationBean(new StatViewServlet(),"/druid/*");
+
+				Map<String,Object> initParam =  new HashMap<>();
+				initParam.put("loginUsername","admin");
+				initParam.put("loginPassword","1");
+
+				bean.setInitParameters(initParam);
+
+				return bean;
+			}
+
+			//添加druid的Filter
+			@Bean
+			public FilterRegistrationBean webStatFilter(){
+				FilterRegistrationBean bean = new FilterRegistrationBean();
+
+				bean.setFilter(new WebStatFilter());
+				Map<String,Object> initParam =  new HashMap<>();
+				initParam.put("exclusions","*.js,*.css,/druid/*");
+
+
+				bean.setInitParameters(initParam);
+				bean.setUrlPatterns(Arrays.asList("/*"));
+
+				return bean;
+
+
+			}
+		}
+		
+		
+	mybatis整合{
+		1.引入
+		<dependency>
+            <groupId>org.mybatis.spring.boot</groupId>
+            <artifactId>mybatis-spring-boot-starter</artifactId>
+            <version>1.3.1</version>
+        </dependency>
+		
+		使用mybatis注解版{
+			注解开启驼峰命名，添加配置
+			@Configuration
+			public class MyMyBatisConfig {
+
+				@Bean
+				public ConfigurationCustomizer configurationCustomizer(){
+					return new ConfigurationCustomizer(){
+						@Override
+						public void customize(org.apache.ibatis.session.Configuration configuration) {
+							configuration.setMapUnderscoreToCamelCase(true);
+						}
+					};
+				}
+
+			}
+			
+			使用MapperScan批量扫描所有的Mapper接口
+			@MapperScan(value="com.wei.**.mapper")
+			
+		}
+		
+		mybatis xml版{
+			1.创建接口类FlowerMapper
+			2.创建xml文件与接口向对应FlowerMapper.xml
+			3.使用MapperScan批量扫描所有的Mapper接口
+				@MapperScan(value="com.wei.**.mapper")
+			4.配置文件中添加mybatis配置信息
+				mybatis.config-location=classpath:mybatis-config.xml
+				mybatis.mapper-locations=classpath:/mapper/*.xml
+		}
+	}
+
+}
 
 
 
