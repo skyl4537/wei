@@ -285,15 +285,160 @@
 		Connector在通过Socket的方式将结果返回给客户端。
 }
 
+Object{
+	Java最基础和核心的类，在编译时会自动导入；
+	public native int hashCode();
+		hashCode根据一定的规则和对象相关的信息生成的一个散列值
+		重写hashCode()方法的基本规则：
+			同一个对象多次调用hashCode()，返回的值应相同
+			两个对象通过equals()比较相同时，hashCode()返回的值也应相同
+	public boolean equals(Object obj) 
+		比较两个对象的内存地址是否相等
+	protected native Object clone() throws CloneNotSupportedException;
+		快速创建一个已有对象的副本
+		Object.clone()方法返回一个Object对象
+		clone方法首先会判对象是否实现了Cloneable接口，若无则抛出CloneNotSupportedException
+		object类默认的拷贝为浅拷贝
+			浅拷贝
+				Body重写clone()，Head不重写clone()
+				static class Body implements Cloneable{
+					public Head head;
+					@Override
+					protected Object clone() throws CloneNotSupportedException {
+						return super.clone();
+					}
+				}
+				static class Head /*implements Cloneable*/{
+					public  Face face;
+					public Head() {}
+					public Head(Face face){this.face = face;}
+				} 
+				
+			不彻底的深拷贝
+				Body重写clone()，Head重写clone() Face不重写clone()
+				static class Body implements Cloneable{
+					public Head head;
+					@Override
+					protected Object clone() throws CloneNotSupportedException {
+						return super.clone();
+					}
+				}
+				static class Head /*implements Cloneable*/{
+					public  Face face;
+					public Head() {}
+					public Head(Face face){this.face = face;}
+					@Override
+					protected Object clone() throws CloneNotSupportedException {
+						return super.clone();
+					}
+				} 
+				static class Face{}
+			深拷贝
+				Body重写clone()，Head重写clone() Face重写clone()
+				static class Body implements Cloneable{
+					public Head head;
+					@Override
+					protected Object clone() throws CloneNotSupportedException {
+						return super.clone();
+					}
+				}
+				static class Head /*implements Cloneable*/{
+					public  Face face;
+					public Head() {}
+					public Head(Face face){this.face = face;}
+					@Override
+					protected Object clone() throws CloneNotSupportedException {
+						return super.clone();
+					}
+				} 
+				static class Face{
+					@Override
+					protected Object clone() throws CloneNotSupportedException {
+						return super.clone();
+					}
+				}
+			
+			
+	public String toString() {
+		return getClass().getName() + "@" + Integer.toHexString(hashCode());
+	}
+		
+	protected void finalize() throws Throwable { }
+		垃圾回收器准备释放内存的时候，会先调用finalize()。
+		(1).  对象不一定会被回收。
+	    (2).垃圾回收不是析构函数。
+        (3).垃圾回收只与内存有关。
+        (4).垃圾回收和finalize()都是靠不住的，只要JVM还没有快到耗尽内存的地步，它是不会浪费时间进行垃圾回收的。
+}
 
+集合{
+	collection接口: 每种容器的存储方式不同，存储方式称之：数据结构
+	|	add(Object o)
+	|		集合中存放的都是对象的引用(地址)
+	|	retainAll(Collection<?> c);
+	|		arr1.retainAll(arr2);集合arr1与arr2交集;arr1只剩交集 arr2不变
+	|	removeAll(Collection<?> c);集合arr1与arr2差集;arr1只剩差集 arr2不变
+	|		arr1.removeAll(arr2);
+	|	在集合元素使用Iterator进行遍历时，不可以使用集合对象的方法操作集合中的元素,会发生异常
+	|----List
+	|	|  List特有方法，凡是可以操作角标的方法都是list特有的方法
+	|   |  增 add(index,element),addAll(index,element) 删 remove(index) 改 set(index,element) 
+	|   |  查 get(index),subList(from,to),listIterator();
+	|   |  
+	|	|
+	|	|----ArrayList
+	|	|----LinkedList
+	|	|----Vertor
+	|	
+	| 	
+	|----Set
+		|----HashSet
+		|----TreeSet
+		
+}
 
+常量池、栈、堆的比较{
+	JAVA中，有六个不同的地方可以存储数据
+	1.寄存器
+	2.栈
+	3.堆
+	4.静态域
+	5.常量池
+	6.非RAM存储
+	
+	String s1 = "china";
+	String s2 = "china";
+	String s3 = "china";
+	String ss1 = new String("china");
+	String ss2 = new String("china");
+	String ss3 = new String("china");
+	
+	栈						  常量池
+							 _________	
+	s1		------------->	|         |
+	s2		------------->  | "china" |	
+	s3		------------->  |_________|
+									
+									堆          
+									
+	ss1		------------->|new String("china"); |
+	                      |---------------------|
+	ss2		------------->|new String("china"); |
+	                      |---------------------|
+	ss3		------------->|new String("china"); |
+	                      |---------------------|
+}
 
-
+HashMap{
+	HashMap 是一个散列表，存储的内容是键值对(key-value)映射。HashMap中的映射是无序的。线程不安全。key、value都可以为null
+	public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneable, Serializable
+	
+}
 
 
 
 https://elf8848.iteye.com/blog/1739598
-
+集合总结网址 http://www.cnblogs.com/skywang12345/p/3323085.html
 
 
 
