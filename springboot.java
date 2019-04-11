@@ -575,6 +575,8 @@
 				mybatis.mapper-locations=classpath:/mapper/*.xml
 		}
 	}
+	
+	
 
 }
 

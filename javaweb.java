@@ -59,7 +59,7 @@
 
 3.servletContext当前应用上下文{
 	ServletConfig: 封装了 Serlvet 的配置信息, 并且可以获取 ServletContext 对象
-	servletContext应用上下文，应用于整个应用 是应用的全局参数
+	servletContext应用上下文，应用于整个应用 是整个应用的全局参数
 	给应用添加全局参数配置，在web.xml，添加context-param子节点
 	<context-param>
 		<param-name>jdbc</param-name>
@@ -240,7 +240,7 @@
 		<%@ page language="java" contentType="text/html; charset=UTF-8"
 		pageEncoding="UTF-8"%>
 		
-		import属性 可以导入使用的类，一些遗憾的包可以不用引入
+		import属性 可以导入使用的类，一些隐含的包可以不用引入
 		import javax.servlet.*;
 		import javax.servlet.http.*;
 		import javax.servlet.jsp.*;
@@ -248,8 +248,8 @@
 		session属性 session="true|false" 当前页面是否允许使用session，访问当前页面是否产生HTTPSession对象
 		
 		errorPage:跳转错误页面是请求转发的机制
-		errorPage="错误页面当前页面的相对路径" 当前页面出现错误的实际相应页面 /表示当前web应用的根目录
-		isErrorPage="true|false" 之前当前页面是否为错误处理页面，即是否可以使用隐含对象exception，建议将该放入WEB-INF路径下，不可直接访问
+		errorPage="错误页面当前页面的相对路径" 当前页面出现错误的实际响应页面 /表示当前web应用的根目录
+		isErrorPage="true|false" 指定当前页面是否为错误处理页面，即是否可以使用隐含对象exception，建议将该页面放入WEB-INF路径下，不可直接访问
 		
 		contentType:指定当前jsp页面的响应类型和字符编码，实际调用的是 response.setAttribute("text/html; charset=UTF-8");
 		
@@ -408,7 +408,7 @@
 		9.header			类似
 		10.headerValues
 		11.initParam		同ServletContext.getInitParameter(name)
-		12.pageContext		
+	
 }
 
 15.jstl{
