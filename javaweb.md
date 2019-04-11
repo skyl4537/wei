@@ -476,18 +476,18 @@ jsp页面应放在应用程序除WEB-INF以外的路径下.
 
 ```xml
 <servlet>
-		<servlet-name>hellojsp</servlet-name>
-		<jsp-file>/hello.jsp</jsp-file>
-		<init-param>
-			<param-name>test</param-name>
-			<param-value>testValue</param-value>
-		</init-param>
-	  </servlet>
+	<servlet-name>hellojsp</servlet-name>
+	<jsp-file>/hello.jsp</jsp-file>
+	<init-param>
+		<param-name>test</param-name>
+		<param-value>testValue</param-value>
+	</init-param>
+</servlet>
 	  
-	  <servlet-mapping>
-		<servlet-name>hellojsp</servlet-name>
-		<url-pattern>/hellojsp</url-pattern>  	
-	  </servlet-mapping>
+<servlet-mapping>
+	<servlet-name>hellojsp</servlet-name>
+	<url-pattern>/hellojsp</url-pattern>  	
+</servlet-mapping>
 ```
 
 pageContext, request, session, application(对属性的作用域的范围从小到大)
@@ -502,18 +502,18 @@ pageContext, request, session, application(对属性的作用域的范围从小�
 
 ```jsp
 <%
-		//pageContext 属性的作用范围仅限于当前页面
-		pageContext.setAttribute("pageContextAttr", "pageContextValue");
+	//pageContext 属性的作用范围仅限于当前页面
+	pageContext.setAttribute("pageContextAttr", "pageContextValue");
+
+	//request 属性的作用范围仅限于同一个请求
+	request.setAttribute("requestAttr", "requestValue");
 	
-		//request 属性的作用范围仅限于同一个请求
-		request.setAttribute("requestAttr", "requestValue");
-		
-		//session 属性作用范围仅限于本次会话
-		session.setAttribute("sessionAttr", "sessionValue");
-		
-		//application 属性作用范围使用与当前web应用 
-		application.setAttribute("applicationAttr", "applicationValue");
-	%>
+	//session 属性作用范围仅限于本次会话
+	session.setAttribute("sessionAttr", "sessionValue");
+	
+	//application 属性作用范围使用与当前web应用 
+	application.setAttribute("applicationAttr", "applicationValue");
+%>
 ```
 
 ## jsp指令
@@ -575,15 +575,15 @@ isErrorPage="true|false"，指定当前页面是否为错误处理页面，即�
 
 ```xml
 <!-- 根据errorcode指定错误代码访问的错误页面 /表示当前web应用的根目录 -->
-		 <error-page>
-			<error-code>404</error-code>
-			<location>/WEB-INF/error/error.jsp</location>
-		  </error-page>
-		  <!--根据错误类型指定访问错误页面 -->
-		  <error-page>
-			<exception-type>java.lang.ArithmeticException</exception-type>
-			<location>/WEB-INF/error/error.jsp</location>
-		  </error-page>
+<error-page>
+	<error-code>404</error-code>
+	<location>/WEB-INF/error/error.jsp</location>
+</error-page>
+<!--根据错误类型指定访问错误页面 -->
+<error-page>
+	<exception-type>java.lang.ArithmeticException</exception-type>
+	<location>/WEB-INF/error/error.jsp</location>
+</error-page>
 ```
 
 ### include指令
@@ -691,9 +691,9 @@ session通过sessionID来区分不同的客户端，系统默认输出一个名�
 
 ```jsp
 <%
-			Cookie cookie = new Cookie("JSESSIONID", session.getId());
-			cookie.setMaxAge(10);
-			response.addCookie(cookie);
+	Cookie cookie = new Cookie("JSESSIONID", session.getId());
+	cookie.setMaxAge(10);
+	response.addCookie(cookie);
 %>
 ```
 
@@ -904,13 +904,11 @@ el可以自动进行类型转化
 
 ```jsp
 <c:set var="name" value="wei" scope="page"></c:set>
-		<%--
-			pageContext.setAttribute("name", "wei");
-		--%>
+<%--
+	pageContext.setAttribute("name", "wei");
+--%>
 <c:set var="subject" value="${param.subject}" scope="session"></c:set>
 	subject:${sessionScope.subject}
-	<br>
-
 	<%
 		Customer cust = new Customer();
 		cust.setId(1001);
@@ -930,11 +928,11 @@ el可以自动进行类型转化
 
 ```jsp
 <br>
-		<c:set var="date" value="2019-01-01" scope="session"></c:set>
-		date:${sessionScope.date }
-		<br>
-		<c:remove var="date"/>	
-		date:--*${sessionScope.date }*--
+<c:set var="date" value="2019-01-01" scope="session"></c:set>
+date:${sessionScope.date }
+<br>
+<c:remove var="date"/>	
+date:--*${sessionScope.date }*--
 ```
 
 ## c:if
@@ -945,9 +943,9 @@ el可以自动进行类型转化
 
 ```jsp
 <c:set var="age" value="20" scope="request"></c:set>
-		<c:if test="${requestScope.age>18 }" var="isAdult">
-			成年
-		</c:if>
+<c:if test="${requestScope.age>18 }" var="isAdult">
+	成年
+</c:if>
 ```
 
 ## c:choose--c:when..c:otherwise
@@ -958,22 +956,22 @@ c:when,c:otherwise不能脱离c:choose标签单独使用<br>
 
 ```jsp
 <c:choose>
-			<c:when test="${param.age>60 }">
-				老年人
-			</c:when>
-			<c:when test="${param.age>25 }">
-				中年
-			</c:when>
-			<c:when test="${param.age>18 }">
-				青年
-			</c:when>
-			<c:when test="${param.age>12 }">
-				青少年
-			</c:when>
-			<c:otherwise>
-				少年
-			</c:otherwise>
-		 </c:choose>
+    <c:when test="${param.age>60 }">
+        老年人
+    </c:when>
+    <c:when test="${param.age>25 }">
+        中年
+    </c:when>
+    <c:when test="${param.age>18 }">
+        青年
+    </c:when>
+    <c:when test="${param.age>12 }">
+        青少年
+    </c:when>
+    <c:otherwise>
+        少年
+    </c:otherwise>
+</c:choose>
 ```
 
 ## c:foreach
@@ -992,48 +990,48 @@ c:when,c:otherwise不能脱离c:choose标签单独使用<br>
 
 ```jsp
 <c:forEach var="i" begin="1" end="10" step="2">
-			${i }
-		</c:forEach>
-		<br>
-		<%
-			List<Customer> custs = new ArrayList<Customer>();
-			custs.add(new Customer(1,"AA"));
-			custs.add(new Customer(2,"BB"));
-			custs.add(new Customer(3,"CC"));
-			custs.add(new Customer(4,"DD"));
-			request.setAttribute("custs", custs);
-		%>
-		varStatus 
-		1.index,当前参数的索引<br>
-		2.count,当前参数是第几个<br>
-		3.first,当前参数是否是第一个<br>
-		4.last,当前参数是否是最后一个<br>
-		<c:forEach var="custs" items="${requestScope.custs}" varStatus="status">
-			${status.index}--${status.count}-${status.first}-${status.last}--${custs.id }---${custs.name}<br>
-		</c:forEach>
+	${i }
+</c:forEach>
+<br>
+<%
+	List<Customer> custs = new ArrayList<Customer>();
+	custs.add(new Customer(1,"AA"));
+	custs.add(new Customer(2,"BB"));
+	custs.add(new Customer(3,"CC"));
+	custs.add(new Customer(4,"DD"));
+	request.setAttribute("custs", custs);
+%>
+	varStatus 
+	1.index,当前参数的索引<br>
+	2.count,当前参数是第几个<br>
+	3.first,当前参数是否是第一个<br>
+	4.last,当前参数是否是最后一个<br>
+<c:forEach var="custs" items="${requestScope.custs}" varStatus="status">
+	${status.index}--${status.count}-${status.first}-${status.last}--${custs.id }---${custs.name}<br>
+</c:forEach>
 		
-		<h5>遍历Map</h5>
-		<%
-			Map<String ,Customer> custMap = new HashMap<String ,Customer>();
-			custMap.put("a",new Customer(1,"AA"));
-			custMap.put("b",new Customer(2,"BB"));
-			custMap.put("c",new Customer(3,"CC"));
-			custMap.put("d",new Customer(4,"DD"));
-			custMap.put("e",new Customer(5,"EE"));
-			request.setAttribute("custMap", custMap);
-		%>
-		<c:forEach var="cust" items="${requestScope.custMap}">
-			${cust.key } ---- ${cust.value } --  ${cust.value.id }--- ${cust.value.name }<br>
-		</c:forEach>
-		<h5>遍历数组</h5>
-		<%
-			String[] names = new String[]{"AAA","BBB","CCC"};
-			request.setAttribute("names", names);
-		%>
+<h5>遍历Map</h5>
+<%
+	Map<String ,Customer> custMap = new HashMap<String ,Customer>();
+	custMap.put("a",new Customer(1,"AA"));
+	custMap.put("b",new Customer(2,"BB"));
+	custMap.put("c",new Customer(3,"CC"));
+	custMap.put("d",new Customer(4,"DD"));
+	custMap.put("e",new Customer(5,"EE"));
+	request.setAttribute("custMap", custMap);
+%>
+<c:forEach var="cust" items="${requestScope.custMap}">
+	${cust.key } ---- ${cust.value } --  ${cust.value.id }--- ${cust.value.name }<br>
+</c:forEach>
+<h5>遍历数组</h5>
+<%
+	String[] names = new String[]{"AAA","BBB","CCC"};
+	request.setAttribute("names", names);
+%>
 		
-		<c:forEach var="name" items="${requestScope.names }">
-			${name }----
-		</c:forEach>
+<c:forEach var="name" items="${requestScope.names }">
+	${name }----
+</c:forEach>
 ```
 
 # 文件上传
@@ -1125,21 +1123,21 @@ enctype默认 application/x-www-form-urlencoded，enctype=“multipart/form-data
 
 ```java
 @Test
-		public void testLocale() {
-			/*
-			 * 1.Locale 表示国家和地区的类
-			 * 2.在web应用中可以通过request.getLocale()获取
-			 */
-			//1.第一种创建Locale的方式
-			Locale locale = Locale.CHINA;
-			System.out.println(locale.getDisplayCountry());
-			System.out.println(locale.getLanguage());
-			
-			//第二种创建方式
-			locale = new Locale("en", "US");
-			System.out.println(locale.getDisplayCountry());
-			System.out.println(locale.getLanguage());
-		}
+public void testLocale() {
+	/*
+	 * 1.Locale 表示国家和地区的类
+	 * 2.在web应用中可以通过request.getLocale()获取
+	 */
+	//1.第一种创建Locale的方式
+	Locale locale = Locale.CHINA;
+	System.out.println(locale.getDisplayCountry());
+	System.out.println(locale.getLanguage());
+	
+	//第二种创建方式
+	locale = new Locale("en", "US");
+	System.out.println(locale.getDisplayCountry());
+	System.out.println(locale.getLanguage());
+}
 ```
 
 
@@ -1148,98 +1146,97 @@ enctype默认 application/x-www-form-urlencoded，enctype=“multipart/form-data
 
 ```java
 @Test
-		public void testDateFormat() { 
-			/*
-			 * 1. 若只希望通过 DateFormat 把一个 Date 对象转为一个字符串, 则可以通过 DateFormat 的工厂方法来获取 DateFormat 对象
-			 * 2. 可以获取只格式化 Date 的 DateFormat 对象: getDateInstance(int style, Locale aLocale) 
-			 * 3. 可以获取只格式化 Time 的 DateFormat 对象: getTimeInstance(int style, Locale aLocale) 
-			 * 4. 可以获取既格式化 Date, 也格式化 Time 的 DateFormat 对象: 
-			 * getDateTimeInstance(int dateStyle, int timeStyle, Locale aLocale) 
-			 * 5. 其中 style 可以取值为: DateFormat 的常量: SHORT, MEDIUM, LONG, FULL. Locale 则为代表国家地区的 Locale 对象
-			 * 6. 通过 DateFormat 的 format 方法来格式化个 Date 对象到字符串. 
-			 * 
-			 * 7. 若有一个字符串, 如何解析为一个 Date 对象呢 ? 
-			 * I. 先创建 DateFormat 对象: 创建 DateFormat 的子类 SimpleDateFormat 对象
-			 * SimpleDateFormat(String pattern). 
-			 * 其中 pattern 为日期, 时间的格式, 例如: yyyy-MM-dd hh:mm:ss
-			 * II. 调用 DateFormat 的 parse 方法来解析字符串到 Date 对象.  
-			 */
-			Date date = new Date();
-			Locale locale = Locale.CHINA;
-			
-			//2019-1-28 14:33:54
-			DateFormat instance = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM, locale);
-			System.out.println(instance.format(date));
-			
-			//2019年1月28日 下午02时33分54秒
-			instance = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG, locale);
-			System.out.println(instance.format(date));
-			
-			//2019年1月28日 星期一 下午02时33分54秒 CST
-			instance = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL, locale);
-			System.out.println(instance.format(date));
-		}
-		@Test
-		public void testDateFormat2() throws ParseException {
-			//将字符串转化为date类型
-			String str = "1992-08-16 08:16:00";
-			DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-			Date parse = dateFormat.parse(str);
-			//Sun Aug 16 08:16:00 CST 1992
-			System.out.println(parse);
-		}
+public void testDateFormat() { 
+    /*
+    * 1. 若只希望通过 DateFormat 把一个 Date 对象转为一个字符串, 则可以通过 DateFormat 的工厂方法来获取 DateFormat 对象
+    * 2. 可以获取只格式化 Date 的 DateFormat 对象: getDateInstance(int style, Locale aLocale) 
+    * 3. 可以获取只格式化 Time 的 DateFormat 对象: getTimeInstance(int style, Locale aLocale) 
+    * 4. 可以获取既格式化 Date, 也格式化 Time 的 DateFormat 对象: 
+    * getDateTimeInstance(int dateStyle, int timeStyle, Locale aLocale) 
+    * 5. 其中 style 可以取值为: DateFormat 的常量: SHORT, MEDIUM, LONG, FULL. Locale 则为代表国家地区的 Locale 对象 
+    * 6. 通过 DateFormat 的 format 方法来格式化个 Date 对象到字符串. 
+    * 7. 若有一个字符串, 如何解析为一个 Date 对象呢 ? 
+    * I. 先创建 DateFormat 对象: 创建 DateFormat 的子类 SimpleDateFormat 对象
+    * SimpleDateFormat(String pattern). 
+    * 其中 pattern 为日期, 时间的格式, 例如: yyyy-MM-dd hh:mm:ss
+    * II. 调用 DateFormat 的 parse 方法来解析字符串到 Date 对象.  
+     */
+    Date date = new Date();
+    Locale locale = Locale.CHINA;
+
+    //2019-1-28 14:33:54
+    DateFormat instance = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM, locale);
+    System.out.println(instance.format(date));
+
+    //2019年1月28日 下午02时33分54秒
+    instance = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG, locale);
+    System.out.println(instance.format(date));
+
+    //2019年1月28日 星期一 下午02时33分54秒 CST
+    instance = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL, locale);
+    System.out.println(instance.format(date));
+}
+@Test
+public void testDateFormat2() throws ParseException {
+	//将字符串转化为date类型
+	String str = "1992-08-16 08:16:00";
+	DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	Date parse = dateFormat.parse(str);
+	//Sun Aug 16 08:16:00 CST 1992
+	System.out.println(parse);
+}
 ```
 
 ## NumberFormat
 
 ```java
 /**
-		 * NumberFormat: 格式化数字到数字字符串, 或货币字符串的工具类
-		 * 1. 通过工厂方法获取 NumberFormat 对象
-		 * NumberFormat.getNumberInstance(locale); //仅格式化为数字的字符串
-		 * NumberFormat.getCurrencyInstance(locale); //格式为货币的字符串
-		 * 
-		 * 2. 通过 format 方法来进行格式化
-		 * 3. 通过 parse 方法把一个字符串解析为一个 Number 类型. 
-		 */
-		@Test
-		public void testNumberFormat() throws ParseException {
-			double d = 123456789.543d;
-			Locale locale = Locale.US;
-			NumberFormat format = NumberFormat.getNumberInstance(locale);
-			String format2 = format.format(d);
-			System.out.println(format2);//123,456,789.543
-			NumberFormat currencyInstance = NumberFormat.getCurrencyInstance(locale);
-			String format3 = currencyInstance.format(d);
-			System.out.println(format3);//$123,456,789.54
-			
-			double parse = (double) currencyInstance.parse(format3);
-			System.out.println(parse);//1.2345678954E8
-		}
+  * NumberFormat: 格式化数字到数字字符串, 或货币字符串的工具类
+  * 1. 通过工厂方法获取 NumberFormat 对象
+  * NumberFormat.getNumberInstance(locale); //仅格式化为数字的字符串
+  * NumberFormat.getCurrencyInstance(locale); //格式为货币的字符串
+  * 
+  * 2. 通过 format 方法来进行格式化
+  * 3. 通过 parse 方法把一个字符串解析为一个 Number 类型. 
+  */
+@Test
+public void testNumberFormat() throws ParseException {
+	double d = 123456789.543d;
+	Locale locale = Locale.US;
+	NumberFormat format = NumberFormat.getNumberInstance(locale);
+	String format2 = format.format(d);
+	System.out.println(format2);//123,456,789.543
+	NumberFormat currencyInstance = NumberFormat.getCurrencyInstance(locale);
+	String format3 = currencyInstance.format(d);
+	System.out.println(format3);//$123,456,789.54
+		
+	double parse = (double) currencyInstance.parse(format3);
+	System.out.println(parse);//1.2345678954E8
+}
 ```
 
 ## MessageFormat
 
 ```java
 @Test
-		public void testMessageFormat() {
-			//占位符
-			String str = "Date: {0}, Salary: {1}";
+public void testMessageFormat() {
+	//占位符
+	String str = "Date: {0}, Salary: {1}";
 			
-			Locale locale = Locale.CHINA;
+	Locale locale = Locale.CHINA;
 			
-			Date date = new Date();
-			double sal = 12345.12;
+	Date date = new Date();
+	double sal = 12345.12;
 			
-			DateFormat dateFormat = DateFormat.getDateInstance(DateFormat.MEDIUM, locale);
-			String dateStr = dateFormat.format(date);
+	DateFormat dateFormat = DateFormat.getDateInstance(DateFormat.MEDIUM, locale);
+	String dateStr = dateFormat.format(date);
 			
-			NumberFormat numberFormat = NumberFormat.getCurrencyInstance(locale);
-			String salStr = numberFormat.format(sal);
+	NumberFormat numberFormat = NumberFormat.getCurrencyInstance(locale);
+	String salStr = numberFormat.format(sal);
 			
-			String result = MessageFormat.format(str, dateStr, salStr);
-			System.out.println(result); 
-		}
+	String result = MessageFormat.format(str, dateStr, salStr);
+	System.out.println(result); 
+}
 ```
 
 
