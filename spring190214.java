@@ -383,8 +383,7 @@
 				public void beforeLog(JoinPoint joinPoint) {
 					String methodName = joinPoint.getSignature().getName();
 					Object[] args = joinPoint.getArgs();
-					System.out.println("loggerAop===>The method :"+methodName+" begin with "+Arrays.asList(args));
-					
+					System.out.println("loggerAop===>The method :"+methodName+" begin with "+Arrays.asList(args));	
 				}
 	
 }

@@ -424,9 +424,9 @@
 	}
 
 	2.c:set{
-		1.可以在指定范围内放一个属性，属性值也可是el表达式，等同pageContext.setAttribute("name", "wei");<br>
-		2.target:为javabean的属性赋值<br>
-		3.target、value:支持el表达式<br>
+		1.可以在指定范围内放一个属性，属性值也可是el表达式，等同pageContext.setAttribute("name", "wei");
+		2.target:为javabean的属性赋值
+		3.target、value:支持el表达式
 
 		<c:set var="name" value="wei" scope="page"></c:set>
 		<%--
