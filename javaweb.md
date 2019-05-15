@@ -371,7 +371,7 @@ web.xml中配置
 
 ## HttpServletRequestWrapper
 
-​	HttpServletRequest包装类，对HttpServletRequest对象值进行修改时可以使用extends HttpServletRequestWrapper类来进行对HttpServletRequest 对象中的数据进行重写，当修改HttpServletRequest 中 param参数时可使用此方式
+​	HttpServletRequest包装类，对HttpServletRequest对象值进行修改时可以使用extends HttpServletRequestWrapper类，来进行对HttpServletRequest 对象中的数据进行重写，当修改HttpServletRequest 中 param参数时可使用此方式
 
 ​	HttpServletResponseWrapper类似
 
@@ -751,7 +751,7 @@ setAttribute,
 
 getAttribute,
 
-invalidate(),
+invalidate(), 将session设置为失效
 
 getMaxInactiveInterval(),
 

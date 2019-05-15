@@ -33,6 +33,10 @@ Spring 对JavaEE开发中非常难用的一些API（JDBC、JavaMail、远程调�
 
 Spring实现了工厂模式的工厂类，这个类名为 BeanFactory (实际上是一个接口),在程序中通常使用 BeanFactory 的子类 ApplicationContext.Spring 相当于一个大的工厂类,通过读取配置文件中的bean标签,实例化对应的类对象.
 
+Spring如何处理线程并发问题？
+
+答案就是ThreadLocal！
+
 ## IOC
 
 控制反转，是一种开发思想。由IOC容器创建bean，并将管理bean的生命周期和依赖关系。
@@ -309,10 +313,10 @@ Spring表达式语言; 支持运行时查询和操作对象图的强大的表达
 
 ```xml
 <bean class="com.x.pojo.Car" p:brand="Audi" p:price="720000" />
-		<bean class="com.x.pojo.People" p:name="wang" 
-			p:car="#{car}" //引用对象, 等价于 p:car-ref="car"
-			p:pet="#{car.brand}" //引用对象的属性
-			p:info="#{car.price > 300000 ? '金领':'白领'}"/> //三元运算符,单引号
+<bean class="com.x.pojo.People" p:name="wang" 
+	p:car="#{car}" //引用对象, 等价于 p:car-ref="car"
+	p:pet="#{car.brand}" //引用对象的属性
+	p:info="#{car.price > 300000 ? '金领':'白领'}"/> //三元运算符,单引号
 ```
 
 
@@ -363,7 +367,7 @@ class Person
 4.只扫描指定注解
 
 ```xml
-<context:include-filter> use-default-filters="false"
+<context:include-filter>标签设置属性 use-default-filters="false"
 <context:component-scan base-package="com.annotation"　use-default-filters="false">
 	<context:include-filter type="annotation" expression="org.springframework.stereotype.Controller"/> 	
 </context:component-scan>
@@ -872,4 +876,6 @@ public class TestApplicationListener implements ApplicationListener<ContextRefre
     }
 }
 ```
+
+
 
