@@ -32,18 +32,14 @@ Servlet是用来处理客户端请求的动态资源。
   </servlet>
 ```
 
-serlvet的创建时机与load-on-startup有关，若为负数, 则在第一次请求时被创建.若为 0 或正数, 则在当前 WEB 应用被Serlvet 容器加载时创建实例, 且数组越小越早被创建。
+serlvet的创建时机与load-on-startup有关，若为负数, 则在第一次请求时被创建.若为 0 或正数, 则在当前 WEB 应用被Serlvet 容器加载时创建实例, 且数值越小越早被创建。
 
 ## servlet-mapping
-
-​	
 
 ```xml
 一个<servlet></servlet>可以映射多个<servlet-mapping></servlet-mapping>
 <url-pattern></url-pattern>一种格式是*.扩展名，另一种格式是以正斜杠（/）开头并以*结尾
 ```
-
-
 
 ## 给servlet添加初始化参数值
 

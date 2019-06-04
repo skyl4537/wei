@@ -1,0 +1,251 @@
+1.使用maven项目搭建spring项目，引入依赖时，不需要每个包都进行依赖
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-context</artifactId>
+    <version>5.1.7.RELEASE</version>
+</dependency>
+引入一个则其他相关的依赖都会引入
+
+@Configuration
+	配置类等同于配置文件
+	将配置类标注@Configuration注解，spring会知道该类为配置类
+	注解方式获取ApplicationContext ctx = new AnnotationConfigApplicationContext(Config.class);
+	其中Config为配置类
+
+@Bean
+	注解等同于xml文件中<bean>标签，表示给容器中注册一个组件
+	默认使用方法名作为bean的id
+	bean注解value属性可以对bean的ID进行自定义
+	
+@ComponentScan包扫描
+	value属性指定要扫描的包
+	@AliasFor("basePackages")
+    String[] value() default {};
+	与<context:component-scan>标签相同@ComponentScan注解也可以使用过滤规则
+	excludeFilters排除包扫描返回值为Filter数组，按照指定规则排除那些组件
+	ComponentScan.Filter[] excludeFilters() default {};
+	
+	includeFilters按照指定规则包含那些组件只包含时，需禁用默认的扫描规则，默认包含所有组件，禁用后才能实现只包含
+	boolean useDefaultFilters() default true;
+	其中Filter也是一个注解
+	@Retention(RetentionPolicy.RUNTIME)
+    @Target({})
+    public @interface Filter {
+        FilterType type() default FilterType.ANNOTATION; //默认按照注解进行过滤
+
+        @AliasFor("classes")
+        Class<?>[] value() default {}; //按照类的规则进行过滤
+
+        @AliasFor("value")
+        Class<?>[] classes() default {};
+
+        String[] pattern() default {};
+    }
+	
+	Filter可指定条件进行过滤，可指定按照注解排除，也可按照类进行排除
+	常用的过滤规则
+	FilterType.ANNOTATION,按照指定注解进行过滤
+	FilterType.ASSIGNABLE_TYPE，按照指定类型过滤
+	FilterType.CUSTOM 使用自定义规则
+	自定义规则必须为TypeFilter的实现类
+	public class MyFilter implements TypeFilter {
+
+    /**
+     * @param metadataReader 读取到的当前正在扫描的类信息
+     * @param metadataReaderFactory 可以获取到其他任何类的信息
+     * @return
+     * @throws IOException
+     */
+
+    @Override
+    public boolean match(MetadataReader metadataReader, MetadataReaderFactory metadataReaderFactory) throws IOException {
+        //获取当前类注解的信息
+        AnnotationMetadata annotationMetadata = metadataReader.getAnnotationMetadata();
+
+        //获取当前正在扫描类的类信息
+        ClassMetadata classMetadata = metadataReader.getClassMetadata();
+
+        //获取当前类的资源信息（类的路径等）
+        Resource resource = metadataReader.getResource();
+
+        //获取当前类的名称
+        String className = classMetadata.getClassName();
+        System.out.println("---->"+className);
+
+        if(className.contains("er")){
+            return true;
+        }
+		//返回false表示过滤条件不成功，不将bean注册到容器中
+        return false;
+    }
+}
+
+
+@Scope
+在IOC容器中，加载的组件都是单实例
+使用@Scope注解调整组件的作用域
+Scope取值有四种
+prototype:原型
+singleton：单例，默认，在IOC容器启动时会调用组件的构造方法来创建组件放入到IOC容器中，以后都是从IOC容器中获取
+request:同一个请求一个实例
+session:同一次会话一个实例
+
+@Lazy懒加载:
+针对单实例bean，调整单实例bean的创建时间，懒加载,容器启动时，不加载对象。第一次使用bean时创建对象
+
+
+@Conditional
+只有满足Conditional的条件才可以将组件注册到IOC容器中
+@Target({ElementType.TYPE, ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface Conditional {
+    Class<? extends Condition>[] value();
+}
+@Conditional中只有一个参数是Condition的数组
+@FunctionalInterface
+public interface Condition {
+    boolean matches(ConditionContext var1, AnnotatedTypeMetadata var2);
+}
+而Condition是一个数组需实现matches方法，matches方法返回true则会将组件注册到IOC容器中
+
+
+给容器中注册组件：
+1.包扫描+组件标注注解（@Controller、@Service等）
+2.@Bean - 将第三方包中得组件，使@Bean注解
+3.使用@Import给容器中快速导入一个组件或一批组件
+4.实现ImportSelector接口将实现类使用@Import注解注册到IOC容器中
+5.实现ImportBeanDefinitionRegistrar接口将实现类使用@Import注解注册到IOC容器中
+6.使用spring提供的FactoryBean工厂将组件注册到容器中
+
+
+
+
+@Import
+@Target({ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface Import {
+    Class<?>[] value();
+}
+@Import的value属性为Class<?>[]数组，该注解只能标注在类上
+在配置类标注@Import({Color.class})即为将Color组件注册到IOC容器中
+@Import方式注册的组件的ID为类的全类名
+
+
+ImportSelector接口
+public interface ImportSelector {
+    String[] selectImports(AnnotationMetadata var1);
+}
+
+selectImports()方法返回String[],即为将要导入IOC容器中类的全类名数组，即可批量导入组件
+public class MyImportSeletor implements ImportSelector {
+    //返回值为要导入到IOC容器中的组件类
+    /*
+        AnnotationMetadata：当前标注@Import注解的类的所有注解信息
+        及
+     */
+    @Override
+    public String[] selectImports(AnnotationMetadata annotationMetadata) {
+        return new String[]{"com.wei.beans.Red"};
+    }
+}
+在配置类标注@Import({MyImportSeletor.class}),看似导入的是MyImportSeletor类，但实际导入的是Red类，实现ImportSelector接口，会将selectImports接口中返回的所有全类名数组都会导入到容器中
+
+
+ImportBeanDefinitionRegistrar
+public interface ImportBeanDefinitionRegistrar {
+    void registerBeanDefinitions(AnnotationMetadata var1, BeanDefinitionRegistry var2);
+}
+
+实现ImportBeanDefinitionRegistrar接口，给容器中自己添加一些组件
+public class MyImportBeanDefinitionRegistrar implements ImportBeanDefinitionRegistrar {
+
+/*
+    BeanDefinitionRegistry bean定义的注册类，所有的bean都在此处注册，可以使用beanDefinitionRegistry给容器中注册组件
+        可以使用beanDefinitionRegistry的registerBeanDefinition手动注册组件
+
+        注册组件时，需要添加一个BeanDefinition，此为一个接口
+ */
+    @Override
+    public void registerBeanDefinitions(AnnotationMetadata annotationMetadata,
+                                        BeanDefinitionRegistry beanDefinitionRegistry) {
+        //判断当前注册的组件中是否用指定的类
+        beanDefinitionRegistry.containsBeanDefinition("");
+		//指定bean的定义信息
+        RootBeanDefinition blue = new RootBeanDefinition(Yellow.class);
+		//指定bean的名称
+        beanDefinitionRegistry.registerBeanDefinition("yellow", blue);
+    }
+}
+
+
+FactoryBean接口
+实现FactoryBean接口
+public class ColorFactoryBean implements FactoryBean {
+
+    //是否为单例 true为单实例 ；false为原型
+    @Override
+    public boolean isSingleton() {
+        return true;
+    }
+
+    /*
+     *  返回一个对象，该对象会添加到容器中,此为懒加载
+     */
+    @Override
+    public Object getObject() throws Exception {
+        System.out.println("ColorFactoryBean...getObject()");
+        return new Color();
+    }
+
+    //返回类的类型
+    @Override
+    public Class<?> getObjectType() {
+        return Color.class;
+    }
+}
+
+将FactoryBean实现类使用@Bean注解添加到容器中
+  @Bean
+    public ColorFactoryBean colorFactoryBean(){
+        return new ColorFactoryBean();
+    }
+在调用bean时，默认获取到的是工厂bean的getObject返回的bean
+要获取工厂bean本身，需要给id前添加&标记
+Object bean = ctx.getBean("&colorFactoryBean");
+原因：BeanFactory在定义时会给beanID添加一个前缀来标注自身
+public interface BeanFactory {
+	String FACTORY_BEAN_PREFIX = "&"; 定义FactoryBean本身
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+	
+
+
+
+
+
+
+
+
+

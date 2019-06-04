@@ -6,7 +6,7 @@ Spring MVC是一个基于Java的实现了MVC设计模式的请求驱动类型的
 
 （1）用户发送请求至前端控制器DispatcherServlet；
 
-（2） DispatcherServlet收到请求后，调用HandlerMapping处理器映射器，请求获取Handle；
+（2） DispatcherServlet收到请求后，调用HandlerMapping处理器映射器，请求获取Handler；
 
 （3）处理器映射器根据请求url找到具体的处理器，生成处理器对象及处理器拦截器(如果有则生成)一并返回给DispatcherServlet；
 
