@@ -266,7 +266,102 @@ jstack命令生成的thread dump信息包含了JVM中所有存活的线程
 
 ![](assets/threadDump.png)
 
+# find
 
+>用来在指定目录下查找文件
 
+## 命令
 
+```shell
+find   path   -option   [   -print ]   [ -exec   -ok   command ]   {} \;
+```
 
+如果使用该命令时，path参数，不设置任何参数，则find命令将在当前目录下查找子目录与文件。并且将查找到的子目录和文件全部进行显示。如果 expression 是空字串则使用 -print 为预设 expression。.来表示当前目录，用/来表示系统根目录
+
+-exec   command   {} \;  将查到的文件执行command操作,{} 和 \;之间有空格
+
+将find出来的东西拷到另一个地方  find *.c -exec cp ‘{}’ /tmp ‘;’
+
+expression 常用命令
+
+```shell
+-mount, -xdev : 只检查和指定目录在同一个文件系统下的文件，避免列出其它文件系统中的文件
+-amin n : 在过去 n 分钟内被读取过
+-anewer file : 比文件 file 更晚被读取过的文件
+-atime n : 在过去n天内被读取过的文件
+-cmin n : 在过去 n 分钟内被修改过
+-cnewer file :比文件 file 更新的文件
+-ctime n : 在过去n天内被修改过的文件
+-empty : 空的文件-gid n or -group name : gid 是 n 或是 group 名称是 name
+-ipath p, -path p : 路径名称符合 p 的文件，ipath 会忽略大小写
+-name name, -iname name : 文件名称符合 name 的文件。iname 会忽略大小写
+-size n : 文件大小 是 n 单位，b 代表 512 位元组的区块，c 表示字元数，k 表示 kilo bytes，w 是二个位元组。-type c : 文件类型是 c 的文件。
+d: 目录
+c: 字型装置文件
+b: 区块装置文件
+p: 具名贮列
+f: 一般文件
+l: 符号连结
+s: socket
+-pid n : process id 是 n 的文件
+你可以使用 ( ) 将运算式分隔，并使用下列运算。
+exp1 -and exp2
+! expr
+-not expr
+exp1 -or exp2
+exp1, exp2
+```
+
+## 测试
+
+```shell
+ find /var/lib/webpark/logs/ -name "*.20190622_16*" -exec  cp -r {} /var/lib/webpark/logs/webService/temp/ \;
+```
+
+path = /var/lib/webpark/logs/
+
+{} 表示find出来的集合
+
+# top
+
+>用于实时显示 process 的动态。
+
+## 命令
+
+```shell
+top [-] [d delay] [q] [c] [S] [s] [i] [n] [b]
+```
+
+查看系统资源，按照内存排序
+
+top 之后，再M
+
+# free
+
+>用于显示内存状态。
+
+## 命令
+
+```shell
+free [-bkmotV][-s <间隔秒数>]
+```
+
+```shell
+-b  以Byte为单位显示内存使用情况。
+-l  显示详细的low和high内存统计
+-k  以KB为单位显示内存使用情况。
+-m  以MB为单位显示内存使用情况。
+-h 　以合适的单位显示内存使用情况，最大为三位数，自动计算对应的单位值。单位有：
+-o 　不显示缓冲区调节列。
+-s<间隔秒数> 　持续观察内存使用状况。
+-t 　显示内存总和列。
+-V 　显示版本信息。
+```
+
+## 测试
+
+```shell
+free -lh
+```
+
+查看系统内存使用情况

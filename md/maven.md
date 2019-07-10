@@ -222,14 +222,16 @@ maven自身所需插件
 4.在父工程中统一依赖关系
 
 ```xml
-<dependencies>
-    <dependency>
-        <groupId>junit</groupId>
-        <artifactId>junit</artifactId>
-        <version>4.12</version>
-        <scope>test</scope>
-    </dependency>
-</dependencies>
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
 ```
 
 5.在子工程中删除相同依赖关系的版本号信息
@@ -243,3 +245,16 @@ maven自身所需插件
 </dependencies>
 ```
 
+# 聚合
+
+就是对模块化工程进行一键化安装
+
+使用modules标签对model模块进行管理
+
+```xml
+<modules>
+    <module>../hello</module>
+</modules>
+```
+
+在pom.xml文件下执行mvn install 会将本项目和models管理的模块项目安装到本地maven仓库中，maven会按照model间相互依赖的关系，进行先后安装
