@@ -613,3 +613,464 @@ ${}		获取值
 [[ ]] = th:text ; [( )] = th:utext 
 ```
 
+# JPA
+
+> 依赖
+
+```xml
+<!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-data-jpa -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-data-jpa</artifactId>
+    <!--<version>2.1.6.RELEASE</version>-->
+</dependency>
+```
+
+主配置文件配置jpa信息
+
+```properties
+spring.jpa.database=mysql
+spring.jpa.show-sql=true
+spring.jpa.generate-ddl=true
+```
+
+实体类
+
+```java
+@Data
+/**
+ * @author: zz
+ * 标注该类为实体类
+ */
+@Entity
+/**
+ * @author: zz
+ * 映射到数据库中的表名
+ */
+@Table(name = "student")
+public class Student {
+
+    /**
+     * 表id主键字段
+     * GeneratedValue id字段的自增方式
+     */
+    @Id
+    @GeneratedValue(strategy= GenerationType.IDENTITY)
+    private int id;
+
+    /**
+     * 属性对应表中字段的名字，默认为属性名
+     * 可以设置表中字段的一些属性信息
+     */
+    @Column(length=50)
+    private String  name;
+
+    @Column(length = 10)
+    private int age;
+
+    @Column(length = 255)
+    private String address;
+
+}
+```
+
+## JpaRepository
+
+> 方法名映射查询数据库
+
+```java
+public interface StudentDao extends JpaRepository<Student,Integer> {
+
+    Student findByName(String name);
+
+    Student findByNameAndAge(String name,int age);
+
+    List<Student> findByNameOrAge(String name, int age);
+}
+```
+
+测试用例
+
+```java
+@Test
+@Transactional
+@Rollback(value = false)
+public void saveStudent(){
+    Student student = new Student();
+    student.setId(1);
+    student.setName("张三");
+    student.setAddress("北京");
+    student.setAge(20);
+    studentDao.save(student);
+}
+
+@Test
+public void findStudents(){
+    List<Student> all = studentDao.findAll();
+    System.out.println(Arrays.asList(all));
+}
+
+@Test
+@Transactional
+@Rollback(value = false)
+public void saveStudents(){
+    List<Student> stus = new ArrayList<>(2);
+    Student lisi = new Student();
+    lisi.setId(2);
+    lisi.setName("李四");
+    lisi.setAddress("北京");
+    lisi.setAge(20);
+    stus.add(lisi);
+
+    Student summer = new Student();
+    summer.setId(3);
+    summer.setName("summer");
+    summer.setAddress("北京");
+    summer.setAge(20);
+    stus.add(summer);
+    studentDao.saveAll(stus);
+}
+
+@Test
+public void findOneStudentByName(){
+    Student summer = studentDao.findByName("summer");
+    System.out.println(summer);
+}
+
+@Test
+public void findByNameAndAge(){
+    Student summer = studentDao.findByNameAndAge("summer", 10);
+    System.out.println(summer);
+}
+
+@Test
+public void findByNameOrAge(){
+    List<Student> studentList = studentDao.findByNameOrAge("summer", 20);
+    System.out.println(Arrays.asList(studentList));
+}
+
+@Test
+public void findStudentsByAddress(){
+    List<Student> studs = studentDao.findStudentsByAddress("北京");
+    System.out.println(Arrays.asList(studs));
+}
+```
+
+> 使用@Query注解
+
+```java
+public interface StudentDao extends JpaRepository<Student,Integer> {
+
+    @Query(value = "from Student where address = ?1")
+    List<Student> findStudentsByAddress(String address);
+
+    @Query("from Student where age = ?2 and name = ?1")
+    List<Student> findStudentsByNameAndAgeQuery(String name,int age);
+}
+
+```
+
+测试实例
+
+```java
+@Test
+public void findStudentsByAddress(){
+    List<Student> studs = studentDao.findStudentsByAddress("北京");
+    System.out.println(Arrays.asList(studs));
+}
+
+@Test
+public void findStudentsByNameAndAgeQuery(){
+    List<Student> studs = studentDao.findStudentsByNameAndAgeQuery("summer",20);
+    System.out.println(Arrays.asList(studs));
+}
+```
+
+> 使用原生sql
+
+```java
+public interface StudentDao extends JpaRepository<Student,Integer> {
+    @Query(value = "select * from student where id = ?",nativeQuery = true)
+    List<Student> findAllBySql(int id);
+}
+```
+
+ 测试用例
+
+```java
+@Test
+public void findAllBySql(){
+    List<Student> allBySql = studentDao.findAllBySql(2);
+    System.out.println(Arrays.asList(allBySql));
+}
+```
+
+> 修改记录
+
+```java
+public interface StudentDao extends JpaRepository<Student,Integer> {
+    @Query("update Student set name = ?2 where id = ?1")
+    @Modifying
+    void updateStudentNameById(int id,String name);
+}
+```
+
+注意一定要添加`@Modifying`注解
+
+```java
+@Test
+@Transactional
+@Rollback(value = false)
+public void updateStudentNameById(){
+    studentDao.updateStudentNameById(1,"spring01");
+}
+```
+
+注意该功能必须在有事务才能执行
+
+## CrudRepository
+
+创建接口继承CrudRepository
+
+```java
+public interface StudentCrud extends CrudRepository<Student,Integer> {
+
+    @Query("from Student where id = ?1")
+    Student findOne(int id);
+
+}
+```
+
+> 使用CrudRepository保存实例
+
+```java
+@Test
+public void saveStudentCrud(){
+    Student student = new Student();
+    student.setId(4);
+    student.setName("ursh");
+    student.setAge(25);
+    student.setAddress("USA");
+    studentCrud.save(student);
+}
+```
+
+> 使用@Query注解
+
+```java
+public interface StudentCrud extends CrudRepository<Student,Integer> {
+    @Query("from Student where id = ?1")
+    Student findOne(int id);
+}
+
+@Test
+public void findAllStudentsCrud(){
+    Student student = studentCrud.findOne(4);
+    System.out.println(student);
+}
+```
+
+> 更新数据方式1
+
+```java
+@Test
+public void updateStudentInfo(){
+    Student student = studentCrud.findOne(4);
+    System.out.println(student);
+    student.setName("hero");
+    studentCrud.save(student);
+}
+```
+
+> 更新数据方式2
+
+```java
+/**
+ * 加上事务后，student实例受事务的监控，一旦对象实例发生改变则数据库信息也将更新
+ */
+@Test
+@Transactional
+@Rollback(value = false)
+public void updateStudentInfo2(){
+    Student student = studentCrud.findOne(4);
+    System.out.println(student);
+    student.setName("haro");
+}
+```
+
+## PagingAndSortingRepository
+
+```java
+public interface StudentPagingAndSortingRepository extends PagingAndSortingRepository<Student,Integer> {
+}
+```
+
+> 分页
+
+```java
+//分页
+@Test
+public void studentPage1(){
+    //当前页的索引。注意索引都是从 0 开始的
+    int page = 0;
+
+    //每页显示 3 条数据
+    int size = 2;
+
+    Pageable pageable = new PageRequest(page,size);
+
+    Page<Student> all = studentPagingAndSortingRepository.findAll(pageable);
+    long totalElements = all.getTotalElements();
+    int totalPages = all.getTotalPages();
+    List<Student> studentList = all.getContent();
+    System.out.println("总数:"+totalElements+",总页数:"+totalPages+",详情:"+Arrays.asList(studentList));
+}
+```
+
+> 排序
+
+```java
+@Test
+public void studentSort(){
+    Sort sort = new Sort(Sort.Direction.DESC,"id");
+    Iterable<Student> all = studentPagingAndSortingRepository.findAll(sort);
+    System.out.println(Arrays.asList(all));
+    //        List<Student> all = studentPagingAndSortingRepository.findAll(sort);
+
+}
+```
+
+# Redis
+
+> 依赖
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-data-redis</artifactId>
+</dependency>
+
+```
+
+主配置文件配置redis信息
+
+```properties
+#redis
+# Redis数据库索引（默认为0）
+spring.redis.database=0
+# Redis服务器地址
+spring.redis.host=127.0.0.1
+# Redis服务器连接端口
+spring.redis.port=6379
+# 连接池最大连接数（使用负值表示没有限制）
+spring.redis.jedis.pool.max-active=200
+# 连接池最大阻塞等待时间（使用负值表示没有限制
+spring.redis.jedis.pool.max-wait=1s
+# 连接池中的最大空闲连接
+spring.redis.jedis.pool.max-idle=8
+# 连接池中的最小空闲连接
+spring.redis.jedis.pool.RedisAutoConfigurationRedisAutoConfigurationmin-idle=0
+# 连接超时时间（毫秒）
+spring.redis.timeout=1000ms
+```
+
+## RedisTemplate的自动配置原理
+
+> RedisAutoConfiguration自动配置类
+
+```java
+@Configuration
+@ConditionalOnClass({RedisOperations.class})
+@EnableConfigurationProperties({RedisProperties.class})
+@Import({LettuceConnectionConfiguration.class, JedisConnectionConfiguration.class})
+public class RedisAutoConfiguration {
+    public RedisAutoConfiguration() {
+    }
+    //添加判断如果IOC容器中没有redisTemplate的bean则创建该类，并注册到IOC容器中
+    @Bean
+    @ConditionalOnMissingBean(
+        name = {"redisTemplate"}
+    )
+    public RedisTemplate<Object, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) throws UnknownHostException {
+        RedisTemplate<Object, Object> template = new RedisTemplate();
+        template.setConnectionFactory(redisConnectionFactory);
+        return template;
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public StringRedisTemplate stringRedisTemplate(RedisConnectionFactory redisConnectionFactory) throws UnknownHostException {
+        StringRedisTemplate template = new StringRedisTemplate();
+        template.setConnectionFactory(redisConnectionFactory);
+        return template;
+    }
+}
+
+```
+
+> 测试
+
+```java
+@RunWith(SpringRunner.class)
+@SpringBootTest(classes= Application.class)
+public class RedisTest {
+    //注入RedisTemplate实例
+    @Autowired
+    private RedisTemplate redisTemplate;
+
+    @Test
+    public void test1(){
+        this.redisTemplate.opsForValue().set("key", "test");
+    }
+
+    @Test
+    public void getKey(){
+        String key = redisTemplate.opsForValue().get("key").toString();
+        System.out.println(key);
+    }
+
+    @Test
+    public void saveObject(){
+        Student student = new Student();
+        student.setId(1);
+        student.setName("lisa");
+        student.setAddress("hongkong");
+        student.setAge(16);
+        redisTemplate.setValueSerializer(new JdkSerializationRedisSerializer());
+        redisTemplate.opsForValue().set("lisa",student);
+    }
+
+    @Test
+    public void getObject(){
+        redisTemplate.setValueSerializer(new JdkSerializationRedisSerializer());
+        Object lisa = redisTemplate.opsForValue().get("lisa");
+        System.out.println(lisa.toString());
+
+    }
+
+    @Test
+    public void saveObjectForJSON(){
+        Student student = new Student();
+        student.setId(1);
+        student.setName("poniu");
+        student.setAddress("hongkong");
+        student.setAge(5);
+        redisTemplate.setValueSerializer(new
+                Jackson2JsonRedisSerializer<>(Student.class));
+        redisTemplate.opsForValue().set("poniu", student);
+    }
+
+    @Test
+    public void test6(){
+        this.redisTemplate.setValueSerializer(new
+                Jackson2JsonRedisSerializer<>(Student.class));
+
+        Student users =
+                (Student)this.redisTemplate.opsForValue().get("poniu");
+        System.out.println(users);
+    }
+
+}
+
+```
+
