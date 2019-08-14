@@ -1,14 +1,109 @@
 # 创建springboot项目
 
 ```xml
-<parent>
+<modelVersion>4.0.0</modelVersion>
+<!--使用spring-boot-starter-parent只需指定springboot的版本号，在依赖其他starter的时候可以省略版本号的管理-->
+<parent> <!-- 在pom文件中添加parent标签，加入spring-boot依赖 -->
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
     <version>2.1.5.RELEASE</version>
 </parent>
+
+<groupId>com.example</groupId>
+<artifactId>demo</artifactId>
+<version>0.0.1-SNAPSHOT</version>
+
+<properties>
+    <java.version>1.8</java.version>
+</properties>
+
+<dependencies>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-devtools</artifactId>
+        <scope>runtime</scope> <!--55-->
+        <optional>true</optional> <!--55-->
+    </dependency>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-test</artifactId>
+        <scope>test</scope> <!--55-->
+    </dependency>
+</dependencies>
+
+<build>
+    <plugins>
+        <!--SpringBoot包含一个Maven插件，可以将项目打包为一个可执行JAR。-->
+        <plugin>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-maven-plugin</artifactId>
+        </plugin>
+    </plugins>
+</build>
 ```
 
- 在pom文件中添加parent标签，加入spring-boot依赖
+可以通过重写项目中的属性来修改各个依赖项的版本依赖。实例：
+
+```xml
+<properties>
+	<spring-data-releasetrain.version>Fowler-SR2</spring-data-releasetrain.version>
+</properties>
+```
+
+在不能使用parent的情况下使用dependencyManagement来引入springboot的依赖，通过使用scope=import
+
+此种情况下不能使用properties属性来修改单个依赖
+
+```xml
+<dependencyManagement><!--？？？？？-->
+	<dependencies>
+		<dependency>
+			<!-- Import dependency management from Spring Boot -->
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-dependencies</artifactId>
+			<version>2.1.7.RELEASE</version>
+			<type>pom</type>
+			<scope>import</scope><!--？？？？？-->
+		</dependency>
+	</dependencies>
+</dependencyManagement>
+```
+
+如果想要修改单个依赖只能在dependencyManagement中进行显示的添加依赖信息
+
+```xml
+<dependencyManagement>
+	<dependencies>
+		<!-- Override Spring Data release train provided by Spring Boot -->
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-releasetrain</artifactId>
+			<version>Fowler-SR2</version>
+			<type>pom</type>
+			<scope>import</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-dependencies</artifactId>
+			<version>2.1.7.RELEASE</version>
+			<type>pom</type>
+			<scope>import</scope>
+		</dependency>
+	</dependencies>
+</dependencyManagement>
+```
+
+Starters的命名规则
+
+springboot提供的的功能是以spring-boot-starter-*来命名
+
+第三方集成springboot以thirdpartyproject-spring-boot-starter来命名
+
+
 
 # 打包
 
@@ -75,7 +170,6 @@ public class Application {
     public static void main(String[] args) {
         SpringApplication.run(Application.class,args);
     }
-
 }
 ```
 
@@ -110,7 +204,7 @@ public class Application extends SpringBootServletInitializer {
 
 # @SpringBootApplication
 
-> 注解继承关系
+> 注解继承关系@SpringBootApplication = @EnableAutoConfiguration+@Configuration+@ComponentScan
 
 ```java
 @Target(ElementType.TYPE)
@@ -273,17 +367,16 @@ DataSourceConfiguration类是根据配置信息来生成数据源
 ```java
 @ConditionalOnMissingBean(DataSource.class)
 @ConditionalOnProperty(name = "spring.datasource.type")
-static class Generic {
-
-	@Bean
-	public DataSource dataSource(DataSourceProperties properties) {
-		//使用DataSourceBuilder创建数据源,利用反射机制来创建相应type的数据源，并绑定相关属性
-		return properties.initializeDataSourceBuilder().build();
-	}
+static class Generic {				
+    @Bean
+    public DataSource dataSource(DataSourceProperties properties) {
+        //使用DataSourceBuilder创建数据源,利用反射机制来创建相应type的数据源，并绑定相关属性
+        return properties.initializeDataSourceBuilder().build();
+    }
 }
 ```
 
-例如:c3p0数据源
+例如:DruidDataSource数据源
 
 ```properties
 #Druid
@@ -296,9 +389,9 @@ pom文件添加依赖
 
 ```xml
 <dependency>
-	<groupId>com.alibaba</groupId>
-	<artifactId>druid</artifactId>
-	<version>1.1.14</version>
+    <groupId>com.alibaba</groupId>
+    <artifactId>druid-spring-boot-starter</artifactId>
+    <version>1.1.10</version>
 </dependency>
 ```
 
@@ -347,13 +440,13 @@ spring.datasource.url=jdbc:mysql://127.0.0.1:33306/parkcloud?useSSL\=false&serve
 </build>
 ```
 
-在默认配置文件中添加xml匹配路径
+在默认配置文件中添加xml匹配路径，`多层路径是可以使用**代替，即com/test/**/*Mapper.xml`
 
 ```properties
 mybatis.mapper-locations=classpath*:com/test/test/mapper/sqlXml/TestMapper.xml
 ```
 
-在主配置程序文件中添加Mapper扫描
+在主配置程序文件中添加Mapper扫描，`扫描包范围不能太大，需指定mapper的最后一层路径地址`
 
 ```java
 @MapperScan("com.bluecard.*.mapper")
@@ -383,6 +476,10 @@ mapper.xml文件中添加dtd模板
 application.properties
 application.yml
 ```
+
+application.properties和application.yml文件接受Spring样式的占位符${}
+
+Maven使用@..@占位符。（可以通过设置名为resource.delimiter的maven属性来覆盖该属性。）???
 
 ## yml语法
 
@@ -638,16 +735,8 @@ spring.jpa.generate-ddl=true
 
 ```java
 @Data
-/**
- * @author: zz
- * 标注该类为实体类
- */
-@Entity
-/**
- * @author: zz
- * 映射到数据库中的表名
- */
-@Table(name = "student")
+@Entity //标注该类为实体类
+@Table(name = "student") //映射到数据库中的表名
 public class Student {
 
     /**
@@ -786,7 +875,7 @@ public void findStudentsByNameAndAgeQuery(){
 }
 ```
 
-> 使用原生sql
+> 使用原生sql `@query注解中添加nativeQuery = true属性`
 
 ```java
 public interface StudentDao extends JpaRepository<Student,Integer> {
@@ -805,7 +894,7 @@ public void findAllBySql(){
 }
 ```
 
-> 修改记录
+> 修改记录`@Modifying`
 
 ```java
 public interface StudentDao extends JpaRepository<Student,Integer> {
@@ -815,7 +904,7 @@ public interface StudentDao extends JpaRepository<Student,Integer> {
 }
 ```
 
-注意一定要添加`@Modifying`注解
+注意一定要添加`@Modifying`注解，使用是必须添加`@Transactional`注解
 
 ```java
 @Test
@@ -1072,5 +1161,90 @@ public class RedisTest {
 
 }
 
+```
+
+简化spring项目的开发，简化spring对第三方库集成时的繁琐配置，实现一站式开发spring项目，为Spring开发提供一个更快、更广泛的入门体验。
+
+# Spring Boot 2.1.7.RELEASE 版本支持
+
+Java 8以上版本
+
+ Spring Framework 5.1.9.RELEASE以上版本
+
+Maven3.3+
+
+Tomcat 9.0
+
+servlet4.0
+
+```java
+public static void main(String[] args){
+    //SpringApplication中传递Example.java来告诉SpringApplication该类为spring的主组件，args可以接受命令行传递的参数
+    SpringApplication.run(Example.class, args);    
+}
+
+```
+
+# 禁用功能
+
+> 如果想禁用springboot中的指定配置项，可以使用exclude属性禁用该功能，或使用excludeName属性指定全类名
+
+```java
+@Configuration
+@EnableAutoConfiguration(exclude={DataSourceAutoConfiguration.class})
+public class MyConfiguration {
+}
+```
+
+# Developer Tools
+
+> springboot开发人员工具
+
+springboot开发工具，当运行完全打包的应用程序时，将自动禁用开发人员工具
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-devtools</artifactId>
+    <optional>true</optional><!--????-->
+</dependency>
+```
+
+# debug 方式启动springboot
+
+```shell
+$ java -jar myproject-0.0.1-SNAPSHOT.jar --debug
+```
+
+# CommandLineRunner 和 ApplicationRunner
+
+> springboot 启动完成前SpringApplication.run(…)方法前会调用CommandLineRunner 和ApplicationRunner接口的实现
+
+```java
+@Component
+public class MyBean implements CommandLineRunner {
+
+    public void run(String... args) {
+        // Do something...
+    }
+
+}
+```
+
+如果CommandLineRunner 的执行有顺序的，可以继承org.springframework.core.Ordered;
+
+```java
+@Component
+public class MyRunnerStater implements CommandLineRunner, Ordered {
+    @Override
+    public int getOrder() {
+        return 0;
+    }
+
+    @Override
+    public void run(String... args) throws Exception {
+        // Do something...
+    }
+}
 ```
 

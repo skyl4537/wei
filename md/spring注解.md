@@ -123,8 +123,8 @@ public class MyFilter implements TypeFilter {
 
 Scope取值有四种
 
-prototype:原型，每次获取都会创建一个新的bean，这些bean不受springIOC容器管理，调用时spring会帮助创建并初始化，但不会调用启销毁方法，
-singleton：单例，默认，在IOC容器启动时会调用组件的构造方法来创建组件放入到IOC容器中，以后都是从IOC容器中获取
+prototype:原型，每次获取都会创建一个新的bean，这些bean不受springIOC容器管理，调用bean时spring会帮助创建并初始化，但不会调用其销毁方法，
+singleton：单例，默认，在IOC容器启动时会调用bean的构造方法来创建组件放入到IOC容器中，以后都是从IOC容器中获取
 request:同一个请求一个实例
 session:同一次会话一个实例
 
@@ -132,7 +132,7 @@ session:同一次会话一个实例
 
 >懒加载
 
-针对单实例bean，调整单实例bean的创建时间，懒加载,容器启动时，不加载对象。第一次使用bean时创建对象
+针对单实例bean，调整单实例bean的创建时间，懒加载，在容器启动时，不创建组件对象。第一次使用bean时才创建对象
 
 # @Conditional
 
@@ -176,9 +176,9 @@ public @interface Import {
 }
 ```
 
-@Import的value属性为Class<?>[]数组，该注解只能标注在类上
+@Import的value属性为Class<?>[]数组，`该注解只能标注在类上`
 在配置类标注@Import({Color.class})即为将Color组件注册到IOC容器中
-@Import方式注册的组件的ID为类的全类名
+`@Import方式注册的组件的ID为类的全类名`
 
 > 4.实现ImportSelector接口将实现类使用@Import注解注册到IOC容器中
 
@@ -192,7 +192,7 @@ selectImports()方法返回String[],即为将要导入IOC容器中类的全类�
 
 ```java
 public class MyImportSeletor implements ImportSelector {
-    //返回值为要导入到IOC容器中的组件类
+    //selectImports方法的返回值即为要导入到IOC容器中的组件类
     /*
         AnnotationMetadata：当前标注@Import注解的类的所有注解信息及
      */
@@ -227,11 +227,11 @@ public class MyImportBeanDefinitionRegistrar implements ImportBeanDefinitionRegi
     @Override
     public void registerBeanDefinitions(AnnotationMetadata annotationMetadata,
                                         BeanDefinitionRegistry beanDefinitionRegistry) {
-        //判断当前注册的组件中是否用指定的类
+        //判断当前注册的组件中是否有指定的类
         beanDefinitionRegistry.containsBeanDefinition("");
 		//指定bean的定义信息
         RootBeanDefinition blue = new RootBeanDefinition(Yellow.class);
-		//指定bean的名称
+		//指定bean的名称并将bean注册到IOC容器中
         beanDefinitionRegistry.registerBeanDefinition("yellow", blue);
     }
 }
@@ -304,7 +304,7 @@ public Car car(){
 }
 ```
 
-`spring在创建多实例bean时，spring只负责创建和初始化，销毁方法不会执行，需自行销毁，容器中不管理多实例bean`
+`spring在创建多实例bean时，spring只负责创建和初始化，销毁方法不会执行，需自行销毁，容器中不管理多实例bean的销毁`
 
 ```java
 @Scope("prototype")
@@ -487,7 +487,7 @@ public Boss boss(Car car){
 }
 ```
 
-标注在有参构造器上:容器启动时，默认调用组件的无参构造器来创建对象,如果组件的只有有参构造器，且参数只有一个自定义参数，则可以省略@Autowired的标注，参数位置的组件也可从容器中获取到
+标注在有参构造器上:容器启动时，默认调用组件的无参构造器来创建对象,如果组件的只有有参构造器，且参数只有一个自定义参数，则可以省略@Autowired的标注，参数位置的组件也可从容器中获取到，如果获取不到则会抛异常
 
 ```java
 @Autowired
@@ -518,7 +518,7 @@ IOC容器中有多个相同类型bean时，指明bean ID来装配，而不是以
 
 >与@Autowired类似，可以对组件进行装配
 
-根据属性的名称进行装配，不支持@Primary注解，没有required属性，有name属性，可以指明使用哪个ID的组件
+`@Resource根据属性的名称进行装配`，不支持@Primary注解，没有required属性，有name属性，可以指明使用哪个ID的组件
 
 # @Inject
 
@@ -543,7 +543,18 @@ xxxAware会以接口方法回调的方式将组件传入到当前对象中
 其实现原理这些接口都有对应的xxxAwareProcessor来实现，都是后置处理来的原理
 
 ```java
-其实现原理这些接口都有对应的xxxAwareProcessor来实现，都是后置处理来的原理
+/**
+	ApplicationContextAware接口
+*/
+public interface ApplicationContextAware extends Aware {
+    void setApplicationContext(ApplicationContext var1) throws BeansException;
+}
+```
+
+测试用例:
+
+```java
+//其,实现原理这些接口都有对应的xxxAwareProcessor来实现，都是后置处理来的原理
 @Component
 public class Red implements ApplicationContextAware, BeanNameAware, EmbeddedValueResolverAware {
 

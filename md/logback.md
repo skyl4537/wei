@@ -330,3 +330,71 @@ class="ch.qos.logback.classic.filter.ThresholdFilter"
 </configuration>
 ```
 
+# 日志规范
+
+> 必须使用参数化信息的方式
+
+```java
+logger.debug("Processing trade with id:[{}] and symbol : [{}] ", id, symbol);
+```
+
+>对于debug日志，必须判断是否为debug级别后，才进行使用
+
+```java
+if (logger.isDebugEnabled) {
+    logger.debug("Processing trade with id:[{}] and symbol : [{}] ", id, symbol);
+}
+```
+
+`不要进行字符串拼接,那样会产生很多String对象，占用空间，影响性能`
+
+`避免使用下面方式`
+
+```java
+logger.debug("Processing trade with id: " + id + " symbol: " + symbol); //不要这么写
+```
+
+> error
+
+如果有Throwable信息，需记录完整异常堆栈信息
+
+```java
+log.error("获取用户[{}]的用户信息时出错",userName,e);//e 为异常对象
+```
+
+`如果进行了抛出异常操作，不要记录error日志，由最终处理方进行处理`
+
+```java
+try{
+    ....
+}catch(Exception ex){
+    String errorMessage=String.format("Error while reading information of user [%s]",userName);
+    logger.error(errorMessage,ex);  //此处不应记录error日志
+    throw new UserServiceException(errorMessage,ex);  //应在UserServiceException类中记录error信息
+}
+```
+
+> warn
+
+当接口抛出业务异常时，应该记录此异常。
+
+例如：根据用户名查询用户信息为空，根据待缴订单号查询待缴订单为空等业务异常时，记录此日志
+
+> INFO
+
+主要逻辑中的分步骤，需记录此日志
+
+客户端请求参数(REST/WS)
+
+调用第三方时的入参和出参
+
+> DEBUG
+
+生产环境需要关闭DEBUG信息
+
+如果在生产情况下需要开启DEBUG,需要使用开关进行管理，不能一直开启。
+
+> TRACE
+
+尽量不要使用，可使用debug进行代替
+

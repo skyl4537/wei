@@ -283,7 +283,9 @@ session   会话  每次会话都会创建一个新的实例
 2.配置文件中添加PropertyPlaceholderConfigurer的bean
 
 ```xml
-<context:property-placeholder />其内部引用了PropertyPlaceholderConfigurer的实现 两者用法相同,都是将属性配置文件中的值，放入到系统配置内存中.
+<!--使用context:property-placeholder-->
+<context:property-placeholder /><!--其内部引用了PropertyPlaceholderConfigurer的实现 两者用法相同,都是将属性配置文件中的值，放入到系统配置内存中.-->
+<!--classpath:表示类路径下地址-->
 <!-- 第一种配置 -->
 <context:property-placeholder location="classpath:jdbc.properties"/>
 <!-- 第二种配置 -->
@@ -292,7 +294,7 @@ session   会话  每次会话都会创建一个新的实例
 </bean>
 
 <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
-	<property name="driverClass" value="${jdbc.driverClass}"></property>
+	<property name="driverClass" value="${jdbc.driverClass}"></property><!--${jdbc.driverClass}不是SPEL表达式-->
 	<property name="jdbcUrl" value="${jdbc.url}"></property>
 	<property name="user" value="${jdbc.username}"></property>
 	<property name="password" value="${jdbc.password}"></property>
@@ -325,19 +327,25 @@ Spring表达式语言; 支持运行时查询和操作对象图的强大的表达
 
 使用autowire属性
 
-​	byName : 使用bean的属性名与bean id 进行匹配
+​	byName : 使用当前bean的属性名与装配bean id 进行匹配
 
-​	byType : 使用bean属性的类型与bean class进行匹配，如果匹配了多个，则抛异常
+​	byType : 使用当前bean属性的类型与装配bean class类进行匹配，如果匹配了多个，则抛异常
+
+```java
+public class Person{
+    private String name;
+    private Car car; 
+    private Address address;
+}
+```
+
+
 
 ```xml
-class Person 
-	name;
-	Car;
-	Address;
-
 <bean id="person" class="com.autowired.Person" autowire="byType" >
 	<property name="name" value="lixin"></property>
 </bean>
+<!--autowire的属性值为byType，person对象在装配依赖bean时，根据person对象属性的类型查找IOC容器中是否有与属性类型相同的bean-->
 <bean id="car" class="com.autowired.Car">
 	<property name="brand" value="奔驰"></property>
 	<property name="price" value="500000"></property>
@@ -350,7 +358,7 @@ class Person
 
 ## 注解方式配置bean
 
-1.必须导入spring-aop-4.0.0.RELEASE.jar
+1.必须导入spring-aop-4.0.0.RELEASE.jar，否则在运行时报错
 
 2.配置文件中必须要进行包扫描，将bean在IOC容器中进行管理
 
@@ -358,7 +366,7 @@ class Person
 <context:component-scan base-package="com.annotation"></context:component-scan>
 ```
 
-3.注解表明的类,与在配置文件中bean声明作用相同。注解表明的类的id，默认为：类名首字母小写，也可使用value属性进行修改
+3.注解表明的类,与在配置文件中bean声明作用相同。注解表明的bean的id，默认为：类名首字母小写，也可使用value属性进行修改
 
 ```java
 @Controller(value="uc")
@@ -519,6 +527,8 @@ public class $Proxy0 extends Proxy implements ArithmeticCalculator{
 
 ## 动态代理实例
 
+jdk动态代理
+
 ```java
 package com.aop;
 
@@ -559,8 +569,9 @@ public class ArithmeticCalculatorProxy {
             /**
              * invoke:代理对象调用代理方法时，会回调invoke方法
              * proxy:代理对象
-             * method：正在被调用的方式
+             * method：正在被调用的方法
              * args：正在被调用方法的参数
+             * 在代理对象执行方法时，执行invoke方法
              */
             @Override
             public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
@@ -573,6 +584,29 @@ public class ArithmeticCalculatorProxy {
 			return proxy;
 		} 
 	}
+}
+```
+
+测试用例
+
+```java
+@Test
+public void getProxyTest(){
+    PersonService personService = new PersonService(){
+        @Override
+        public String getName(String id) {
+            return "gggg";
+        }
+    };
+
+    //生成代理对象
+    Object proxy = new PersonServiceImpl(personService).getProxy();
+	
+    //将代理对象强转为代理目标类
+    PersonService p =  (PersonService)proxy;
+	//调用代理对象的方法
+    String kkkk = p.getName("kkkk");
+    System.out.println(kkkk);
 }
 ```
 
@@ -598,11 +632,9 @@ public class ArithmeticCalculatorProxy {
 | @AfterThrowing | 异常通知 | 在目标方法抛出异常后调用通知                                 |
 | @Around        | 环绕通知 | 通知包裹了被通知的方法，在被通知的方法调用之前和之后执行自定义的行为 |
 
-
-
 ## 在Spring中启用AspectJ注解支持
 
-1.配置文件添加
+1.在xml配置文件添加
 
 ```xml
 <aop:aspectj-autoproxy>
@@ -614,7 +646,7 @@ AopArith类为切面
 
 ```java
 @Component
-@Aspect
+@Aspect//声明该类为切面类
 public class AopArith {
 	//获取返回值时，returning的值，必须和参数的名称相同
 	@AfterReturning(value = "execution( * com.aop.annocation.*.*(..))",returning="result")
@@ -697,7 +729,7 @@ public void beforeLog(JoinPoint joinPoint) {
 
 2.一致性
 
-数据执行事务前正确，执行事务后仍然正确
+数据执行事务前正确，执行事务后仍然正确，例如A向B转账，A+B的总和在转账前后必须相同
 
 3.隔离性
 

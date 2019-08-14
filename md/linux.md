@@ -36,6 +36,12 @@
 
 查询字符串“RT1019”   i-忽略大小写、n-显示行数、r-遍历所有文件及文件夹  m符合范本样式的那一列之外，并显示该行之后的num行的内容
 
+> 指定查找路径
+
+```sh
+ grep  -r '保存6' /var/lib/webpark/logs/parkingGuidance/ > /var/lib/webpark/update/grep.txt
+```
+
 # netstat 
 
 > 命令用于显示网络状态
@@ -365,3 +371,50 @@ free -lh
 ```
 
 查看系统内存使用情况
+
+# crontab
+
+## 命令
+
+```shell
+crontab -e : 修改 crontab 文件. 如果文件不存在会自动创建
+crontab –l : 显示 crontab 文件
+crontab -r : 删除 crontab 文件。
+crontab -ir : 删除 crontab 文件前提醒用户
+```
+
+crontab -e 修改后，退出按Ctrl+X，会有两种情形
+
+1.未修改，直接退出
+
+2.修改了文件，下面会询问是否需要保存修改 Y|N
+
+​	输入Y确认保存，输入N不保存
+
+​	按Ctrl+C取消返回
+
+3.输入了Y，下一步会提示输入想要保存的文件名
+
+​	如果不需要修改文件名直接回车
+
+​	若想要保存成别的名字（也就是另存为）则输入新名称然后确定，也可用Ctrl+C来取消返回。
+
+> cron表达式
+
+```shell
+m		minute	分钟
+h		hour	小时
+dom		day		天
+mon		month	月
+dow		week	周
+command			命令
+```
+
+## 测试
+
+```shell
+* * * * *  grep  -r '保存6' /var/lib/webpark/logs/parkingGuidance/ > /var/lib/webpark/update/grep.txt
+```
+
+每分钟检查/var/lib/webpark/logs/parkingGuidance/路径下，文件中包含 `保存6`的信息导入到 /var/lib/webpark/update/grep.txt 文本中
+

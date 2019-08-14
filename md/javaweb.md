@@ -251,19 +251,19 @@ Filter是JavaWEB 的一个重要组件, 可以对发送到 Servlet 的请求/响
 web.xml 文件中配置与servlet类似
 
 ```xml
-        <filter>
-			<filter-name>helloFilter</filter-name>
-			<filter-class>com.blue.filter.HelloFilter</filter-class>
-			<init-param>
-				<param-name>username</param-name>
-				<param-value>sa</param-value>
-			</init-param>
-		</filter>
+<filter>
+    <filter-name>helloFilter</filter-name>
+    <filter-class>com.blue.filter.HelloFilter</filter-class>
+    <init-param>
+        <param-name>username</param-name>
+        <param-value>sa</param-value>
+    </init-param>
+</filter>
 
-		<filter-mapping>
-			<filter-name>helloFilter</filter-name>
-			<url-pattern>/filter/*</url-pattern> 
-		</filter-mapping>
+<filter-mapping>
+    <filter-name>helloFilter</filter-name>
+    <url-pattern>/filter/*</url-pattern> 
+</filter-mapping>
 ```
 
 ## Filter 相关的 API
@@ -305,12 +305,12 @@ FilterChain Filter 链. 多个 Filter 可以构成一个 Filter 链，doFilter(S
 ​	error 错误页面的方式
 
 ```xml
-              <filter-mapping>
-				<filter-name>HelloFilter</filter-name>
-				<url-pattern>/filter/test.jsp</url-pattern>
-				<dispatcher>FORWARD</dispatcher>
-				<dispatcher>REQUEST</dispatcher>
-			  </filter-mapping>
+<filter-mapping>
+    <filter-name>HelloFilter</filter-name>
+    <url-pattern>/filter/test.jsp</url-pattern>
+    <dispatcher>FORWARD</dispatcher>
+    <dispatcher>REQUEST</dispatcher>
+</filter-mapping>
 ```
 
 可以设置多个dispatcher设置指定filter对资源多种调用方式的拦截
