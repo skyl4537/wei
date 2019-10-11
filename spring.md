@@ -769,12 +769,12 @@ Spring的核心事务管理抽象是PlatformTransactionManager，主要实现类
 
 默认情况下，spring会对所有的运行时异常进行回滚，可配置遇到那种异常进行回滚或那种异常不会滚
 
-| 属性                   | 描述                                                      |
-| ---------------------- | --------------------------------------------------------- |
-| rollbackFor            | Class[] rollbackFor={AccountException.class,......}       |
-| rollbackForClassName   | String[] rollbackForClassName={"AccountException",......} |
-| noRollbackFor          | Class[] rollbackFor={AccountException.class,......}       |
-| noRollbackForClassName | String[] rollbackForClassName={"AccountException",......} |
+| 属性                   | 描述                                                         |
+| ---------------------- | ------------------------------------------------------------ |
+| rollbackFor            | Class[] rollbackFor={AccountException.class,......}。默认情况下，在遇到运行时异常和Error，spring事务会进行回滚，而遇到非运行时异常Exception则不会回滚，可以通过rollbackFor指定需要回滚的受检查异常，指定异常之后，被指定的异常和该异常的子类都会得到回滚，并且运行时异常和Error异常仍然会得到回滚 |
+| rollbackForClassName   | String[] rollbackForClassName={"AccountException",......}    |
+| noRollbackFor          | Class[] rollbackFor={AccountException.class,......}          |
+| noRollbackForClassName | String[] rollbackForClassName={"AccountException",......}    |
 
 #### 事务的只读
 
@@ -785,11 +785,27 @@ Spring的核心事务管理抽象是PlatformTransactionManager，主要实现类
 | true   | 只读，不可进行修改操作，也可进行修改操作，但spring不会对此次操作进行加锁，spring在对数据进行修改操作进行加锁,与事务的隔离级别相关，只读不加锁效率更高 |
 | false  | 非只读，默认值，                                             |
 
-
-
 #### 事务的超时设置
 
 事务的超时设置timeout，设置事务在强制回滚之前可以占用的时间
+
+### 事务案例分析
+
+> spring 事务处理中，同一个类中:A方法（无事务）调B方法（有事务）,事务不生效
+
+原因:
+
+springAOP代理实现方式有两种：1.基于jdk的动态代理，2.基于cglib动态增强方式。这两种方式在spring中是自由切换的。基于idk代理不依赖于第三方jar包，但是不能代理类。
+
+spring通过AopProxy接口，抽象了两种实现，实现了一致的AOP方式
+
+![](assets/spring-aopProxy.webp)
+
+Spring的AOP代理类的实际调用过程图：
+
+![](md/assets/spring-aop-produce.webp)
+
+从上面的分析可以看出，methodB没有被AopProxy通知到，导致最终结果是：被Spring的AOP增强的类，在同一个类的内部方法调用时，其被调用方法上的增强通知将不起作用。
 
 # @Scheduled
 

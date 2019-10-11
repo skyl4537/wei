@@ -25,7 +25,8 @@
     <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-devtools</artifactId>
-        <scope>runtime</scope> <!--55-->
+        <scope>runtime</scope> 
+        <!--运行时范围，runtime 依赖在运行和测试系统的时候需要，但在编译的时候不需要。比如可能在编译的时候只需要JDBC API JAR，而只有在运行的时候才需要JDBC驱动实现。-->
         <optional>true</optional> <!--55-->
     </dependency>
     <dependency>
@@ -556,12 +557,6 @@ springboot会扫描一下位置的配置文件来使用
 修改默认配置文件的位置：
 spring.config.location=D:/config
 ```
-
-
-
-
-
-
 
 # @PropertySource 
 

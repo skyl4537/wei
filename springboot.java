@@ -272,7 +272,7 @@
 	public class MyMvcConfig extends WebMvcConfigurerAdapter{...}
 	
 	springmvc的所有自动配置信息都在 WebMvcAutoConfiguration配置类中
-	使用@EnableWebMvc该注解则表示，完全使用自己配置的springmvc配置，springboot中自动配置的mvc将不起作用
+	使用@EnableWebMvc该注解则表示，完全使用自己配置的springmvc配置，springboot中自动配置的mvc将不起作用，不建议使用
 
 }
 
@@ -569,15 +569,12 @@
 			1.创建接口类FlowerMapper
 			2.创建xml文件与接口向对应FlowerMapper.xml
 			3.使用MapperScan批量扫描所有的Mapper接口
-				@MapperScan(value="com.wei.**.mapper")
+				@MapperScan(value="com.wei.**.mapper") 
 			4.配置文件中添加mybatis配置信息
 				mybatis.config-location=classpath:mybatis-config.xml
 				mybatis.mapper-locations=classpath:/mapper/*.xml
 		}
 	}
-	
-	
-
 }
 
 

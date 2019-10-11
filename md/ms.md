@@ -1,33 +1,3 @@
-#HashMap
-
-HashMap是无序的散列表，存储内容为键值对，是线程不安全的，key-value允许为null.
-
-HashMap有5个重要的成员变量
-
-1. node类型的table数组，HashMap中键值对存放于这个数组中，node是一个单链表。默认数组大小为16
-
-2. Size是HashMap保存键值对的个数
-
-3. loadFactory加载因子，默认为0.75f
-
-4. thresthod阀值，判断是否需要调整Hashmap的容量.阀值=容量*加载因子,当HashMap的size>阀值时，将对HashMap的容量进行扩充。扩充为原来的2倍。
-
-5. modCount修改次数。对HashMap的修改都会增加这个值，是用来实现fail-fast机制。使用volatile修饰，保证多线程间的可见性。
-
-造成Hash冲突的原因，在对HashMap进行添加数据的时，根据Key的hashcode值来决定该键值对添加到table中的哪个位置，如果两个Key的hashcode相同就会出现hash冲突，HashMap使用单链表来进行拉链式存储，解决hash冲突。
-
-# Fail-fast
-
-Fail-fast是在对集合对象使用迭代器进行遍历时，其他线程对这个集合对象进行修改，则会报ConCurrentModificationException异常，即为fail-fast，原因是在使用迭代器对集合对象的进行遍历的时候，会将集合对象当前的modCount记录下来，每获取值的时候都会将当前的modCount修改次数与记录的值做对比，如不相同则抛异常。
-
-#HashTable
-
-HashTable是无序的散列表，存储内容为键值对，是线程安全的，key-value不允许为null，实现上与HashMap相同，只是在方法上加了synchronized关键字，将方法改为同步机制，实现线程安全的。
-
- # HashSet
-
-HashSet是继续HashMap实现的，在进行添加元素时，对元素的key和value进行判空操作。
-
 # synchronized
 
 原理:一个对象有且只有一个同步锁；调用对象的synchronized关键字即可获取到对象的同步锁；不同线程间对同步锁的获取是互斥的，只能被一个线程获取到。
@@ -50,7 +20,7 @@ Synchronized有3个规则
 
 1.核心线程数；2.最大线程数；3.线程最大空闲时间；4.空闲时间的时间单位；5.线程工厂；6.任务队列；7拒绝策略
 
-运行原理：初始创建1个新的线程池，当前线程数为0，有任务需要处理时，会创建一个线程处理任务，假设任务需要长期处理，当任务添加到当前线程>核心线程数的时候，将任务添加到任务等待队列中，当任务等待队列也填满时，将线程数扩充到最大线程数，新扩充的线程处理新添加的任务，当最大线程数都在处理任务时，再向线程池中添加的任务将会根据拒绝策略进行任务的拒绝。常用的有四种线程池cache、fixed、schedule、single都是根据ThreadpoolExecutor进行的特殊定制
+运行原理：初始创建1个新的线程池，当前线程数为0，有任务需要处理时，会创建一个线程处理任务，假设任务需要长期处理，当任务添加到当前线程>核心线程数的时候，将任务添加到任务等待队列中，当任务等待队列也填满时，将线程数扩充到最大线程数，新扩充的线程处理新添加的任务，当最大线程数都在处理任务时，再向线程池中添加的任务将会根据拒绝策略进行任务的拒绝。常用的有四种线程池cache（缓存）、fixed（固定）、schedule（定时）、single（单）都是根据ThreadpoolExecutor进行的特殊定制
 
 # TCP和UDP
 
@@ -63,6 +33,10 @@ TCP只能1对1进行数据传输；UDP可以1对1、1对多、多对多进行数
 TCP 3次握手，就像打电话，首先A要拨通B的号码，就是我们所说的目标ip,port,拨通后A说喂，此时A不能确定自己的连接是够正常，B回复A喂时，A确定自己的连接是正常的，但B不能确定自己的连接是否正常，所以A回复你好我是A，此时B也能确定自己的连接正常，谈话开始。
 
 TCP 4次挥手，A我说完了A就进入了FIN_WAIT_1状态，B说稍等，A进入FIN_WAIT_2状态，B则进入CLOSE_WAIT状态，B又说我也说完了，B进入了LAST_ACK状态，A说那挂了吧，B关闭进入CLOSE状态，A进入TIME_WAIT状态
+
+## 为什么要进行四次挥手？
+
+4次挥手，第一次挥手只是说明A的数据已经发送完毕，此时A是可以接受到B 发送的数据的，B进行的第二次挥手表明B已经知道A已经数据已经没有数据要发送了，此时A还是可以接受到B发送给A数据的，B进行第三次挥手表明B已经没有数据要发送了，此时AB将断开连接。
 
  # JVM
 
@@ -78,6 +52,8 @@ TCP 4次挥手，A我说完了A就进入了FIN_WAIT_1状态，B说稍等，A进�
 
 Collection有两大分支，有序的List和无序的set，List的实现有ArrayList、LinkedList、Vactor，set的实现由HashSet和TreeSet
 
+## ArrayList
+
 ArrayList为动态数组，是线程不安全的，有两个重要的成员变量
 
 1. object[] elementData数组，用来存放数据，
@@ -90,13 +66,43 @@ ArrayList为动态数组，是线程不安全的，有两个重要的成员变�
 
 还有一个线程安全的List是copyOnwriteArrayList，与Vactor不同的是，在对集合修改时进行加锁，读取数组时不加锁，修改时将原来的数组copy一份，修改copy的数组，再将数组的引用指向copy的新的数组
 
-#LinkedList 
+## LinkedList 
 
 LinkedList双向链表，线程不安全，有3个重要的参数
 
 First ，last，size，first为链表的第一个元素，last为链表的最后一个元素，size为当前链表中元素的个数
 
 在对链表指定位置进行查找时，首先对比index的值是否大于size/2,小于则从前往后查，大于则从后往前查。LinkedList中add和offer方法相同都是向链表的最末端添加数据，push则是向链表最前端添加数据。Pop、remove、poll都是删除链表的第一个参数，peek则是获取链表的第一个元素。
+
+## HashMap
+
+HashMap是无序的散列表，存储内容为键值对，是线程不安全的，key-value允许为null.
+
+HashMap有5个重要的成员变量
+
+1. node类型的table数组，HashMap中键值对存放于这个数组中，node是一个单链表。默认数组大小为16
+2. Size是HashMap保存键值对的个数
+3. loadFactory加载因子，默认为0.75f
+4. thresthod阀值，判断是否需要调整Hashmap的容量.阀值=容量*加载因子,当HashMap的size>阀值时，将对HashMap的容量进行扩充。扩充为原来的2倍。
+5. modCount修改次数。对HashMap的修改都会增加这个值，是用来实现fail-fast机制。使用volatile修饰，保证多线程间的可见性。
+
+造成Hash冲突的原因，在对HashMap进行添加数据的时，根据Key的hashcode值来决定该键值对添加到table中的哪个位置，如果两个Key的hashcode相同就会出现hash冲突，HashMap使用单链表来进行拉链式存储，解决hash冲突。
+
+## HashTable
+
+HashTable是无序的散列表，存储内容为键值对，是线程安全的，key-value不允许为null，实现上与HashMap相同，只是在方法上加了synchronized关键字，将方法改为同步机制，实现线程安全的。
+
+## HashSet
+
+HashSet是继续HashMap实现的，在进行添加元素时，对元素的key和value进行判空操作。
+
+## ConcurrentHashMap
+
+ConcurrentHashMap是基于数组+链表+红黑树+同步锁的方式实现的，存储内容是key-value 键值对，不允许key和value为null，是线程安全的，在java7中concurrentHashMap的线程安全实现方式为分段锁segment，在java7中ConcurrentHashMap的数组为segment数组，segment下管理一个类似于HashMap的数组集合，添加数据时判断该key属于那个segment，然后对该segment进行锁操作，实现线程安全。java8摒弃了分段锁的思想，更细粒度的对数组进行锁操作，java8中ConcurrentHashMap直接使用了一个大的数组，在进行添加数据时，查找到该key对应的链表头，对该链表头使用synchronized关键字锁住链表头，然后在进行操作。
+
+# Fail-fast
+
+Fail-fast是在对集合对象使用迭代器进行遍历时，其他线程对这个集合对象进行修改，则会报ConCurrentModificationException异常，即为fail-fast，原因是在使用迭代器对集合对象的进行遍历的时候，会将集合对象当前的modCount记录下来，每获取值的时候都会将当前的modCount修改次数与记录的值做对比，如不相同则抛异常。
 
  # cookie与session的区别
 
@@ -120,4 +126,9 @@ First ，last，size，first为链表的第一个元素，last为链表的最后
 
 5./表示:forward: / 代表的是当前 WEB 应用的根目录 <http://127.0.0.1:8080/helloworld>,redirect: / 代表的是当前 WEB 站点的根目录. 例：<http://127.0.0.1:8080/>
 
-l
+# IO和NIO
+
+<https://blog.csdn.net/qq_22933035/article/details/79967791>
+
+
+

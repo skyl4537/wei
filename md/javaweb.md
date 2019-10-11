@@ -10,6 +10,27 @@ import javax.servlet.Servlet
 
 Servlet是用来处理客户端请求的动态资源。
 
+servlet为接口，有一下几个方法
+
+```java
+public interface Servlet {
+    //servlet实例创建完成之后，则会调用init初始化方法
+    void init(ServletConfig var1) throws ServletException;
+
+    ServletConfig getServletConfig();
+	//servlet创建和初始化完成后，访问映射地址时，则会访问service方法，每访问一次映射地址就会调用一次service方法，实例用于响应请求
+    void service(ServletRequest var1, ServletResponse var2) throws ServletException, IOException;
+
+    String getServletInfo();
+	//servlet容器关闭时，会调用servlet的销毁方法
+    void destroy();
+}
+```
+
+servlet的实例是有servlet容器创建的，servlet的创建时机，与servlet在web.xml 的配置有关
+
+servlet是由servlet容器创建的单实例，因此多线程并发的情况下，如果在servlet实例中定义了全局变量，再进行对全局变量修改的情况是线程不安全的。
+
 ## servlet任务
 
 ​	1.接收请求数据
@@ -25,14 +46,16 @@ Servlet是用来处理客户端请求的动态资源。
     <servlet-name>springMVC</servlet-name>
     <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
     <init-param>
-      <param-name>contextConfigLocation</param-name>
-      <param-value>classpath*:config/spring-mvc.xml</param-value>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>classpath*:config/spring-mvc.xml</param-value>
     </init-param>
     <load-on-startup>1</load-on-startup>
-  </servlet>
+</servlet>
 ```
 
 serlvet的创建时机与load-on-startup有关，若为负数, 则在第一次请求时被创建.若为 0 或正数, 则在当前 WEB 应用被Serlvet 容器加载时创建实例, 且数值越小越早被创建。
+
+当前web应用被servlet容器加载时，加载servlet实例。
 
 ## servlet-mapping
 
@@ -43,16 +66,19 @@ serlvet的创建时机与load-on-startup有关，若为负数, 则在第一次�
 
 ## 给servlet添加初始化参数值
 
-```xml
 在web.xml，servlet节点下添加子节点
-	<init-param>
-  		<param-name>user</param-name>
-  		<param-value>sa</param-value>
-  	</init-param>
-	<init-param>
-  		<param-name>password</param-name>
-  		<param-value>12345</param-value>
-  	</init-param>
+
+init-param子节点在servlet节点里，可以看做是局部参数
+
+```xml
+<init-param>
+    <param-name>user</param-name>
+    <param-value>sa</param-value>
+</init-param>
+<init-param>
+    <param-name>password</param-name>
+    <param-value>12345</param-value>
+</init-param>
 ```
 
 ## 获取servlet初始化值
@@ -62,19 +88,19 @@ serlvet的创建时机与load-on-startup有关，若为负数, 则在第一次�
 ### 根据name键值获取
 
 ```java
-	String user = servletConfig.getInitParameter("user");
-	String password = servletConfig.getInitParameter("password");
+String user = servletConfig.getInitParameter("user");
+String password = servletConfig.getInitParameter("password");
 ```
 
 ### 获取name键值数组
 
 ```java
 Enumeration<String> initParameterNames = servletConfig.getInitParameterNames();
-		while(initParameterNames.hasMoreElements()) {
-			String name = initParameterNames.nextElement();
-			String value = servletConfig.getInitParameter(name);
-			System.out.println("while name = "+name+" ; value = "+value);
-		}
+while(initParameterNames.hasMoreElements()) {
+    String name = initParameterNames.nextElement();
+    String value = servletConfig.getInitParameter(name);
+    System.out.println("while name = "+name+" ; value = "+value);
+}
 ```
 
 ## Servlet的生命周期方法
@@ -112,6 +138,26 @@ Servlet 生命周期
 
 封装了 Serlvet 的配置信息, 并且可以获取 ServletContext 对象
 
+ServletConfig为接口
+
+```java
+public interface ServletConfig {
+    String getServletName();
+
+    ServletContext getServletContext();
+
+    String getInitParameter(String var1);
+
+    Enumeration getInitParameterNames();
+}
+```
+
+该接口有servlet容器实现
+
+ServletConfig可以获取servlet的初始化参数，即init-param节点中的参数和值
+
+可以通过该对象获取当前web项目的初始化参数，也可以通过该对象获取当前web应用的的上下文，
+
 ### servletContext
 
 当前应用上下文，应用全局参数
@@ -120,16 +166,18 @@ Servlet 生命周期
 
 ```xml
 <context-param>
-		<param-name>jdbc</param-name>
-		<param-value>mysql</param-value>
-	</context-param>
-	<context-param>
-		<param-name>driver</param-name>
-		<param-value>com.mysql.jdbc.Driver</param-value>
-	</context-param>
+    <param-name>jdbc</param-name>
+    <param-value>mysql</param-value>
+</context-param>
+<context-param>
+    <param-name>driver</param-name>
+    <param-value>com.mysql.jdbc.Driver</param-value>
+</context-param>
 ```
 
 在servlet容器应用启动时，初始化参数，即tomcat启动时，初始化应用上下文参数
+
+servletContext可以获取整个web应用的所有参数
 
 获取应用上下文方法
 
@@ -162,34 +210,43 @@ String realPath = servletContext.getRealPath("/note.txt");
 
 ```java
 ClassLoader classLoader = getClass().getClassLoader();
-		InputStream resourceAsStream = classLoader.getResourceAsStream("jdbc.properties");
+InputStream resourceAsStream = classLoader.getResourceAsStream("jdbc.properties");
 ```
 
 web应用程序的相对路径
 
 ```java
 InputStream resourceAsStream2 = servletContext.getResourceAsStream("/WEB-INF/classes/jdbc.properties");
-		System.out.println("2."+resourceAsStream2);
+System.out.println("2."+resourceAsStream2);
 ```
 
 ## service()相关
+
+```java
+@Override
+public void service(ServletRequest servletRequest, ServletResponse servletResponse) throws ServletException, IOException {}
+```
+
+ServletRequest，ServletResponse均为接口，接口的实现是有servlet容器实现的，将请求和响应信息封装到实现类的对象中
 
 根据请求参数的名字，返回请求参数的数组
 
 ```java
 String[] parameterValues = req.getParameterValues("interesting");
-		for (String interesting : parameterValues) {
-			System.out.println("####"+"interesting = "+interesting);
-		}
+for (String interesting : parameterValues) {
+    System.out.println("####"+"interesting = "+interesting);
+}
 ```
 
 获取请求参数的Map
 
+req.getParameterMap();该方法返回的Map类型为Map<String, String[]> 
+
 ```java
 Map<String, String[]> parameterMap = req.getParameterMap();
-		for (Map.Entry<String, String[]> entry : parameterMap.entrySet()) {
-			System.out.println("****"+entry.getKey()+":"+Arrays.asList(entry.getValue()));
-		}
+for (Map.Entry<String, String[]> entry : parameterMap.entrySet()) {
+    System.out.println("****"+entry.getKey()+":"+Arrays.asList(entry.getValue()));
+}
 ```
 
 HttpServletRequest: 是 SerlvetRequest 的子接口. 针对于 HTTP 请求所定义.http请求可进行强转
@@ -202,32 +259,38 @@ HttpServletRequest httpServlet = (HttpServletRequest) req;
 
 ```java
 //输出结果为：/helloworld/loginServlet  /helloworld为项目
-		String requestURI = httpServlet.getRequestURI();
-		System.out.println("requestURI = "+requestURI);
+String requestURI = httpServlet.getRequestURI();
+System.out.println("requestURI = "+requestURI);
 ```
 
 获取当前访问的整个路径
 
 ```java
 //输出结果为：http://localhost:8080/helloworld/loginServlet 
-		StringBuffer requestURL = httpServlet.getRequestURL();
-		System.out.println("requestURL = "+requestURL.toString());
+StringBuffer requestURL = httpServlet.getRequestURL();
+System.out.println("requestURL = "+requestURL.toString());
+```
+
+获取当前web应用项目访问名称
+
+```java
+System.out.println(request.getContextPath());//helloworld
 ```
 
 获取当前访问的请求参数
 
 ```java
 //获取当前访问的请求参数    get请求 获取到？后的字符串 ennn=a&k=jjj
-		String queryString = httpServlet.getQueryString();
-		System.out.println("queryString = "+queryString);
+String queryString = httpServlet.getQueryString();
+System.out.println("queryString = "+queryString);
 ```
 
 获取当前访问的路径
 
 ```java
 // 输出结果为：/loginServlet
-		String servletPath = httpServlet.getServletPath();
-		System.out.println("servletPath = "+servletPath);
+String servletPath = httpServlet.getServletPath();
+System.out.println("servletPath = "+servletPath);
 ```
 
 ServletResponse
@@ -644,7 +707,13 @@ b.jsp 获取参数 <%=request.getParameter("user") %>
 
 # cookie
 
-cookie跟踪会话的一种方式，cookie默认是会话级别的，在客户端保存信息
+> cookie由来
+
+http协议是一种无状态的协议，web服务器本身不能识别哪些请求来自同一个浏览器发出的，浏览器的每一次请求都是完全孤立的，作为web服务器，必须能够采用一种机制来唯一标识同一个用户，同时记录该用户的状态。
+
+> cookie定义
+
+cookie跟踪会话的一种方式，cookie默认是会话级别的，在客户端保存信息，由web服务器在http响应消息头中附带传送给浏览器的小的文本文件，一旦web浏览器消息头中保存了某个cookie，那么以后访问web服务器时，都会在http请求头中将该cookie值回传给服务器，cookie中只有一个name和value
 
 ## 创建cookie并保存的方式
 
@@ -693,9 +762,9 @@ session通过sessionID来区分不同的客户端，系统默认输出一个名�
 
 ```jsp
 <%
-	Cookie cookie = new Cookie("JSESSIONID", session.getId());
-	cookie.setMaxAge(10);
-	response.addCookie(cookie);
+    Cookie cookie = new Cookie("JSESSIONID", session.getId());
+    cookie.setMaxAge(10);
+    response.addCookie(cookie);
 %>
 ```
 
@@ -1248,6 +1317,26 @@ public void testMessageFormat() {
 2.JSP侧重于视图，Servlet主要用于控制逻辑
 
 3.Servlet中没有内置对象，Jsp中的内置对象都是必须通过HttpServletRequest对象，HttpServletResponse对象以及HttpServlet对象得到.
+
+# GET和POST
+
+get请求
+
+```shell
+1.在浏览器中直接属于某个连接地址，或者单击网页中的超链接浏览器发出的http请求方式为get请求
+2.get请求的请求参数会拼接在url连接后面以？隔开，以key=value的形式，进行参数携带
+3.get请求的传送的数据量一般在1KB以内
+```
+
+post请求
+
+```
+1.post是将数据作为http消息发送给web服务器
+2.在数据量较大的情况下需要使用post请求
+3.在尽心文件上传等大量数据时，要求必须使用post请求
+```
+
+
 
 
 

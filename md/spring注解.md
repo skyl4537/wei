@@ -160,6 +160,8 @@ public interface Condition {
 
 # 给容器中注册组件方式
 
+spring认为所有的组件都应该注册到IOC容器中，组件之间的关系通过容器来进行自动装配（即依赖注入）
+
 > 1.包扫描+组件标注注解（@Controller、@Service等）
 
 > 2.@Bean - 将第三方包中得组件，使@Bean注解
@@ -779,7 +781,7 @@ public PlatformTransactionManager transactionManager(DataSource dataSource){
 }
 ```
 
->3.在配置类型添加@EnableTransactionManagement注解开启事务
+>3.在配置类上添加@EnableTransactionManagement注解开启事务
 
 >4.在需要使用事务的方法上添加@Transactional注解
 
