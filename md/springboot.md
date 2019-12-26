@@ -44,6 +44,14 @@
             <artifactId>spring-boot-maven-plugin</artifactId>
         </plugin>
     </plugins>
+    <resources>
+        <resource>
+            <directory>src/main/java</directory>
+            <includes>
+                <include>**/*.xml</include>
+            </includes>
+        </resource>
+    </resources>
 </build>
 ```
 
@@ -400,8 +408,8 @@ pom文件添加依赖
 
 ```properties
 spring.datasource.type=com.alibaba.druid.pool.DruidDataSource
-spring.datasource.username=bluecardsoft
-spring.datasource.password=#$%_BC13439677375
+spring.datasource.username=root
+spring.datasource.password=root
 spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
 spring.datasource.url=jdbc:mysql://127.0.0.1:33306/parkcloud?useSSL\=false&serverTimezone=GMT%2B8
 ```
@@ -1242,4 +1250,20 @@ public class MyRunnerStater implements CommandLineRunner, Ordered {
     }
 }
 ```
+
+# Springboot和SpringMVC区别
+
+Spring Boot 是基于Spring4的条件注册的一套快速开发整合包
+
+Spring MVC 是基于Spring的一个 MVC 框架
+
+Spring 框架利用“工厂模式”（DI）和“代理模式”（AOP）解耦应用组件。spring MVC 是spring的衍生框架，用来开发web应用
+
+springboot主要是为了解决使用Spring框架需要进行大量的配置的问题，简化开发，同时集成了大量常用的第三方库
+
+
+
+
+
+
 

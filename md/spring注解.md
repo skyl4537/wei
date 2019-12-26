@@ -12,7 +12,7 @@
 
 # @Configuration
 
-> 标注该类为配置类等同于配置文件
+> 标注该类为配置类等同于配置文件，该注解只能标注在类上
 
 将配置类标注@Configuration注解，spring会知道该类为配置类
 
@@ -24,15 +24,15 @@ ApplicationContext ctx = new AnnotationConfigApplicationContext(Config.class);
 
 # @Bean
 
-> 注解等同于xml文件中<bean>标签，表示给容器中注册一个组件
+> 注解等同于xml文件中<bean>标签，表示给容器中注册一个组件，该注解只能用在配置类的方法上
 
 默认使用方法名作为bean的id，bean注解value属性可以对bean的ID进行自定义
 
 # @ComponentScan
 
-> 包扫描
+> 包扫描，该注解与@Configuration注解一起使用，只能标注在类上
 
-value属性指定要扫描的包，返回值为string数组
+value属性指定要扫描的包，返回值为String数组
 
 ```java
 @AliasFor("basePackages")
@@ -41,13 +41,24 @@ String[] value() default {};
 
 与<context:component-scan>标签相同@ComponentScan注解也可以使用过滤规则
 
-excludeFilters排除包扫描返回值为Filter数组，按照指定规则排除那些组件
+```java
+//排除包
+@ComponentScan(value={"com.blue.wei.annotation"}, excludeFilters = {
+        @ComponentScan.Filter(type = FilterType.ANNOTATION,classes = {Controller.class})
+})
+//只包含
+@ComponentScan(value={"com.blue.wei.annotation"},includeFilters = {
+        @ComponentScan.Filter(type = FilterType.ANNOTATION,classes = {Controller.class})
+},useDefaultFilters = false)
+```
+
+excludeFilters排除包，扫描返回值为Filter数组，按照指定规则排除哪些组件
 
 ```java
 ComponentScan.Filter[] excludeFilters() default {};
 ```
 
-includeFilters按照指定规则包含哪些组件只包含时，需禁用默认的扫描规则，默认包含所有组件，禁用后才能实现只包含
+includeFilters按照指定规则包含哪些组件，只包含时，需禁用默认的扫描规则，默认包含所有组件，禁用后才能实现只包含
 
 ```java
 boolean useDefaultFilters() default true;
@@ -95,7 +106,6 @@ public class MyFilter implements TypeFilter {
     public boolean match(MetadataReader metadataReader, MetadataReaderFactory metadataReaderFactory) throws IOException {
         //获取当前类注解的信息
         AnnotationMetadata annotationMetadata = metadataReader.getAnnotationMetadata();
-
         //获取当前正在扫描类的类信息
         ClassMetadata classMetadata = metadataReader.getClassMetadata();
 
@@ -109,34 +119,36 @@ public class MyFilter implements TypeFilter {
         if(className.contains("er")){
             return true;
         }
-		//返回false表示过滤条件不成功，不将bean注册到容器中
+        //返回false表示过滤条件不匹配，不会把bean注册到IOC容器中
         return false;
     }
 }
 ```
 
+@ComponentScans注解可以配置多个ComponentScan注解
+
 # @Scope
 
->在IOC容器中，加载的组件都是单实例
+>在IOC容器中，IOC加载组件默认都是单实例，该注解可以标注在类上配置类内的创建Bean的方法上
 
-使用@Scope注解调整组件的作用域
+可以使用@Scope注解调整组件的作用域
 
 Scope取值有四种
 
-prototype:原型，每次获取都会创建一个新的bean，这些bean不受springIOC容器管理，调用bean时spring会帮助创建并初始化，但不会调用其销毁方法，
-singleton：单例，默认，在IOC容器启动时会调用bean的构造方法来创建组件放入到IOC容器中，以后都是从IOC容器中获取
+prototype: 原型(多实例)，每次从IOC容器中获取都会创建一个新的bean，这些bean实例是不受IOC容器管理的，调用bean时spring会帮助创建并初始化bean实例，但这些bean实例IOC容器不会销毁，IOC容器关闭时，也不会调用bean的销毁方法，
+singleton：单实例，默认，在IOC容器启动时会调用bean的构造方法来创建组件放入到IOC容器中，以后都是从IOC容器中获取，IOC容器销毁时，会调用bean的销毁方法
 request:同一个请求一个实例
 session:同一次会话一个实例
 
 # @Lazy
 
->懒加载
+>懒加载，针对单实例bean，只能是@Scope=singleton的实例才可以使用
 
-针对单实例bean，调整单实例bean的创建时间，懒加载，在容器启动时，不创建组件对象。第一次使用bean时才创建对象
+针对单实例bean，调整单实例bean的创建时间，懒加载，在容器启动时，不创建组件对象。第一次使用bean时才创建对象。
 
 # @Conditional
 
-> 条件加载组件，只有满足Conditional的条件才可以将组件注册到IOC容器中
+> 条件加载组件，只有满足Conditional的条件才可以将组件注册到IOC容器中，该注解可以标注在类上配置类内的创建Bean的方法上
 
 ```java
 @Target({ElementType.TYPE, ElementType.METHOD})
@@ -152,11 +164,17 @@ public @interface Conditional {
 ```java
 @FunctionalInterface
 public interface Condition {
+    //ConditionContext：判断条件可使用的上下文（环境） 包括：IOC容器中的beanFactory，类加载器，Environment环境信息，bean定义的注册器类等
+    //AnnotatedTypeMetadata:当前标注@Conditional注解的注释信息
     boolean matches(ConditionContext var1, AnnotatedTypeMetadata var2);
 }
 ```
 
+bean定义的注册器类：注册器类中包含了组件类的定义信息包含组件的名称，组件的类型，组件的作用域等，可以向容器中注册bean的定义,移除bean定义，查询bean的定义等
+
 而Condition是一个数组需实现matches方法，matches方法返回true则会将组件注册到IOC容器中
+
+该注解标注在类上，表示符合条件，该类和类中所有注册的bean才会被加载到IOC容器中，否则不加载。可以用于类中统一设置。例如生产环境不同配置不同的数据源等。
 
 # 给容器中注册组件方式
 
@@ -164,7 +182,7 @@ spring认为所有的组件都应该注册到IOC容器中，组件之间的关�
 
 > 1.包扫描+组件标注注解（@Controller、@Service等）
 
-> 2.@Bean - 将第三方包中得组件，使@Bean注解
+> 2.@Configuration+@Bean - 将第三方包中得组件，使@Bean注解
 
 > 3.使用@Import给容器中快速导入一个组件或一批组件
 
@@ -182,7 +200,7 @@ public @interface Import {
 在配置类标注@Import({Color.class})即为将Color组件注册到IOC容器中
 `@Import方式注册的组件的ID为类的全类名`
 
-> 4.实现ImportSelector接口将实现类使用@Import注解注册到IOC容器中
+> 4.实现ImportSelector接口，将该接口的实现类使用@Import注解注册到IOC容器中
 
 ```java
 public interface ImportSelector {
@@ -196,7 +214,7 @@ selectImports()方法返回String[],即为将要导入IOC容器中类的全类�
 public class MyImportSeletor implements ImportSelector {
     //selectImports方法的返回值即为要导入到IOC容器中的组件类
     /*
-        AnnotationMetadata：当前标注@Import注解的类的所有注解信息及
+        AnnotationMetadata：当前标注@Import注解的类的所有注解信息
      */
     @Override
     public String[] selectImports(AnnotationMetadata annotationMetadata) {
@@ -205,9 +223,9 @@ public class MyImportSeletor implements ImportSelector {
 }
 ```
 
-在配置类标注@Import({MyImportSeletor.class}),看似导入的是MyImportSeletor类，但实际导入的是Red类，实现ImportSelector接口，会将selectImports接口中返回的所有全类名数组都会导入到容器中
+在配置类上标注@Import({MyImportSeletor.class}),看似导入的是MyImportSeletor类，但实际导入的是Red类。实现ImportSelector接口，会将selectImports接口中返回的所有全类名数组中包含的类都导入到容器中
 
-> 5.实现ImportBeanDefinitionRegistrar接口将实现类使用@Import注解注册到IOC容器中
+> 5.实现ImportBeanDefinitionRegistrar接口，将实现类使用@Import注解注册到IOC容器中
 
 ```java
 public interface ImportBeanDefinitionRegistrar {
@@ -229,11 +247,11 @@ public class MyImportBeanDefinitionRegistrar implements ImportBeanDefinitionRegi
     @Override
     public void registerBeanDefinitions(AnnotationMetadata annotationMetadata,
                                         BeanDefinitionRegistry beanDefinitionRegistry) {
-        //判断当前注册的组件中是否有指定的类
+        //判断注册器中是否包含指定名的组件
         beanDefinitionRegistry.containsBeanDefinition("");
-		//指定bean的定义信息
+		//指定bean的类型
         RootBeanDefinition blue = new RootBeanDefinition(Yellow.class);
-		//指定bean的名称并将bean注册到IOC容器中
+		//指定bean的id，并将bean注册到I注册表中（IOC容器中）
         beanDefinitionRegistry.registerBeanDefinition("yellow", blue);
     }
 }
@@ -244,14 +262,14 @@ public class MyImportBeanDefinitionRegistrar implements ImportBeanDefinitionRegi
 ```java
 public class ColorFactoryBean implements FactoryBean {
 
-    //是否为单例 true为单实例 ；false为原型
+    //设置该组件是否为单实例 true为单实例 ；false为原型（多实例）
     @Override
     public boolean isSingleton() {
         return true;
     }
 
     /*
-     *  返回一个对象，该对象会添加到容器中,此为懒加载
+     *  返回一个对象，该对象会添加到IOC容器中,此为懒加载
      */
     @Override
     public Object getObject() throws Exception {
@@ -259,7 +277,7 @@ public class ColorFactoryBean implements FactoryBean {
         return new Color();
     }
 
-    //返回类的类型
+    //返回类的类型---指定组件在IOC容器中的类型
     @Override
     public Class<?> getObjectType() {
         return Color.class;
@@ -275,6 +293,8 @@ public ColorFactoryBean colorFactoryBean(){
     return new ColorFactoryBean();
 }
 ```
+
+id=colorFactoryBean的组件将会被注入到IOC容器中，但在调用 ctx.getBean("colorFactoryBean"); 返回的则是colorFactoryBean.getObject()类型的bean实例。
 
 在调用bean时，默认获取到的是工厂bean的getObject返回的bean
 
@@ -295,7 +315,7 @@ public interface BeanFactory {
 
 # 指定bean的初始化和销毁方法
 
-受springIOC容器管理的bean可指定其初始化和销毁方法
+受springIOC容器管理的bean可指定其初始化方法和销毁方法
 
 > 1.使用@Bean注解的属性来指定，在创建bean时指定其初始化和销毁方法
 
@@ -306,7 +326,7 @@ public Car car(){
 }
 ```
 
-`spring在创建多实例bean时，spring只负责创建和初始化，销毁方法不会执行，需自行销毁，容器中不管理多实例bean的销毁`
+`spring在创建多实例bean时，spring只负责创建和初始化，销毁方法不会执行，需自行销毁，容器不管理多实例bean的销毁`
 
 ```java
 @Scope("prototype")
@@ -316,7 +336,7 @@ public Car car(){
 }
 ```
 
->2.spring提供了初始化InitializingBean和销毁接口DisposableBean
+>2.spring提供了初始化接口InitializingBean和销毁接口DisposableBean
 
 ```java
 public interface InitializingBean {
@@ -327,7 +347,7 @@ public interface DisposableBean {
 }
 ```
 
-bean实现这两个接口，spring在启动时会执行该类的初始化，spring容器在关闭时会执行该类的销毁方法
+bean实现这两个接口，spring在注册该类时会执行该类的初始化，spring容器在关闭时会执行该类的销毁方法
 
 实例:
 
@@ -337,9 +357,9 @@ public class Cat implements InitializingBean, DisposableBean {...}
 
 > 3.使用JSR250提供的注解对bean进行初始化和销毁
 
-@PostConstruct //bean创建完成+赋值完成后，再执行此初始化方法
+@PostConstruct //bean创建完成并且属性赋值完成后，再执行此初始化方法，该注解只能标注在方法上
 
-@PreDestroy //容器销毁bean之前执行销毁方法
+@PreDestroy //容器销毁bean之前执行销毁方法，该注解只能标注在方法上
 
 ```java
 @Component
@@ -364,7 +384,7 @@ public class Pet {
 
 > 4.实现BeanPostProcessor接口
 
-postProcessBeforeInitialization: bean创建完成属性赋值完成后，init方法前调用
+postProcessBeforeInitialization: bean创建完成并属性赋值完成后，init方法前调用
 
 postProcessAfterInitialization: bean的init方法执行完成后调用
 
@@ -461,7 +481,7 @@ public class Person {
 
 1.默认按照属性的类型去IOC容器在中查找组件，即context.getBean(Bean.class);
 
-2.在IOC查找到多个相同类型的组件时，会将`属性的名称作为id`在IOC中查找,context.getBean("bean")
+2.在IOC查找到多个相同类型的组件时，会将标注@Autowired的`属性的名称作为id`在IOC中查找,context.getBean("bean")
 
 required属性，默认为true，及必须装配该组件，没有则抛异常，false时，该组件可不装配，此时该组件为null
 
@@ -474,7 +494,7 @@ public @interface Autowired(){...}
 
 标注在方法上:方法使用的参数，从IOC容器中获取(自定义类型的参数)
 
-常用@Bean+方法参数，参数从容器中获取,@Autowired可以省略
+常用@Bean+方法参数，参数从容器中获取,@Autowired可以省略。使用@Bean注解创建组件时，方法参数的值是从容器中获取的
 
 ```java
 example:
@@ -483,13 +503,13 @@ public void setCar(Car car) {
 	this.car = car;
 }
 @Bean
-//    @Autowired 此处的注解可以省略
+//@Autowired 此处的注解可以省略
 public Boss boss(Car car){
 	return new Boss(car);
 }
 ```
 
-标注在有参构造器上:容器启动时，默认调用组件的无参构造器来创建对象,如果组件的只有有参构造器，且参数只有一个自定义参数，则可以省略@Autowired的标注，参数位置的组件也可从容器中获取到，如果获取不到则会抛异常
+也可标注在有参构造器上: 容器启动时，默认调用组件的无参构造器来创建组件 , 如果组件只有一个有参构造器，且参数只有一个自定义参数，则可以省略@Autowired的标注，参数位置的组件实例从容器中获取到，如果获取不到则会抛异常
 
 ```java
 @Autowired
@@ -506,21 +526,23 @@ public Boss( @Autowired Car car) {}
 
 >@Qualifier与 @Autowired一起使用
 
-IOC容器中有多个相同类型bean时，指明bean ID来装配，而不是以属性名为bean的id在IOC容器中查找
+IOC容器中有多个相同类型bean的实例时，指明bean ID来装配，而不是以属性名为bean的id在IOC容器中查找
 
 # @Primary
 
-> 在IOC容器中有多个类型的bean时，没有指明使用哪个bean的情况下，有该注解标注的bean为默认首选bean
+> 在IOC容器中有多个类型的组件bean时，没有指明使用哪个bean的情况下，有该注解标注的bean为默认首选bean
 
-优先级
+IOC装配bean的优先级
 
 @Qualifier>@Primary
+
+如果在方法或者属性上标注了@Qualifier，则标注了@Primary的bean则不起作用，会按照@Qualifier指定的bean id 来进行装配
 
 # @Resource
 
 >与@Autowired类似，可以对组件进行装配
 
-`@Resource根据属性的名称进行装配`，不支持@Primary注解，没有required属性，有name属性，可以指明使用哪个ID的组件
+`@Resource默认根据属性的名称进行装配`，不支持@Primary注解，没有required属性，有name属性，可以指明使用哪个ID的组件
 
 # @Inject
 
@@ -534,7 +556,7 @@ IOC容器中有多个相同类型bean时，指明bean ID来装配，而不是以
 
 >自定义组件想要使用spring底层的一些组件（applicationcontext/beanFactory）,只需要让该类实现xxxAware组件即可，在对象创建时会调用xxxAware的接口的实现方法，并注入相关的组件
 
-ApplicationContextAware:自动注入IOC容器
+ApplicationContextAware:帮助将bean自动注入IOC容器，实现ApplicationContextAware接口，即要实现setApplicationContext方法，该返回可以获取到回调的ApplicationContext IOC容器。
 
 EmbeddedValueResolverAware 值解析器，可以对String字符串的值进行解析,支持${}获取环境变量和配置文件中的值，支持spEL表达式
 
@@ -673,7 +695,7 @@ context.refresh();
 
 # AOP
 
->动态代理：指在程序运行期间动态的将某段代码切入到指定方法的位置进行运行的编译方式
+>动态代理：指在程序运行期间动态的将某段代码或某段程序切入到指定方法的位置进行运行的编译方式
 
 > 1.需要导入AOP依赖包
 
@@ -762,14 +784,14 @@ AnnotationAwareAspectJAutoProxyCreator
 
 ```java
 @Bean
-    public DataSource dataSource() throws Exception{
-        ComboPooledDataSource dataSource = new ComboPooledDataSource();
-        dataSource.setUser("bluecardsoft");
-        dataSource.setPassword("#$%_BC13439677375");
-        dataSource.setJdbcUrl("jdbc:mysql://127.0.0.1:33306/springtx?serverTimezone=GMT%2B8");
-        dataSource.setDriverClass("com.mysql.cj.jdbc.Driver");
-        return dataSource;
-    }
+public DataSource dataSource() throws Exception{
+    ComboPooledDataSource dataSource = new ComboPooledDataSource();
+    dataSource.setUser("root");
+    dataSource.setPassword("root");
+    dataSource.setJdbcUrl("jdbc:mysql://127.0.0.1:33306/springtx?serverTimezone=GMT%2B8");
+    dataSource.setDriverClass("com.mysql.cj.jdbc.Driver");
+    return dataSource;
+}
 ```
 
 >2.向容器中注入transactionManager
@@ -875,7 +897,7 @@ SpringTransactionAnnotationParser中解析事务注解属性等信息，propagat
 
 > TransactionInterceptor事务拦截器
 
-保存了事务的属性、事务管理器，底层为方法拦截器MethodInterceptor，代理对象在执行方法时会执行方法拦截器，方法拦截器就行进行工作。
+保存了事务的属性、事务管理器，底层为方法拦截器MethodInterceptor，代理对象在执行方法时会执行方法拦截器，方法拦截器进行工作。
 
 在目标方法执行时:
 

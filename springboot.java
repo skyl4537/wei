@@ -442,8 +442,8 @@
         </dependency>
 		
 	通过配置文件修改配置参数信息
-		spring.datasource.username=bluecardsoft
-		spring.datasource.password=#$%_BC13439677375
+		spring.datasource.username=root
+		spring.datasource.password=root
 		spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
 		spring.datasource.url=jdbc:mysql://192.168.8.8:33306/test0601?serverTimezone\=GMT%2B8
 		

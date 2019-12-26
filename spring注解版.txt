@@ -558,8 +558,8 @@ AnnotationAwareAspectJAutoProxyCreator
 @Bean
     public DataSource dataSource() throws Exception{
         ComboPooledDataSource dataSource = new ComboPooledDataSource();
-        dataSource.setUser("bluecardsoft");
-        dataSource.setPassword("#$%_BC13439677375");
+        dataSource.setUser("root");
+        dataSource.setPassword("root");
         dataSource.setJdbcUrl("jdbc:mysql://127.0.0.1:33306/springtx?serverTimezone=GMT%2B8");
         dataSource.setDriverClass("com.mysql.cj.jdbc.Driver");
         return dataSource;

@@ -342,8 +342,8 @@ public class UserFallbackFactory implements FallbackFactory<UserService> {
 server.port=8011
 
 spring.datasource.type=com.alibaba.druid.pool.DruidDataSource
-spring.datasource.username=bluecardsoft
-spring.datasource.password=#$%_BC13439677375
+spring.datasource.username=root
+spring.datasource.password=root
 spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
 spring.datasource.url=jdbc:mysql://127.0.0.1:33306/test0601?useSSL\=false&serverTimezone=GMT%2B8
 spring.application.name=bookshop
@@ -376,8 +376,8 @@ spring.cloud.config.uri=http://192.168.5.23:4001
 server.port=0
 
 spring.datasource.type=com.alibaba.druid.pool.DruidDataSource
-spring.datasource.username=bluecardsoft
-spring.datasource.password=#$%_BC13439677375
+spring.datasource.username=root
+spring.datasource.password=root
 spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
 spring.datasource.url=jdbc:mysql://127.0.0.1:33306/test0601?useSSL=false&serverTimezone=GMT%2B8
 spring.application.name=bookshop
